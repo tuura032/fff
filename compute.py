@@ -926,14 +926,10 @@ def _kicker_awards(starts, kickers, owner_rows, share, short=None):
         "blurb": "The most points any kicker has scored in a single week.",
     })
 
-    worst = min(starts, key=lambda s: (s["points"], s["season"], s["week"]))
-    awards.append({
-        "emoji": "\U0001f9ca", "name": "Worst week ever",
-        "headline": f"{worst['name']} — {worst['points']}",
-        "detail": f"{worst['season']} week {worst['week']}, started by {who(worst['owner'])}",
-        "blurb": "The fewest points any started kicker has managed.",
-    })
-
+    # No "worst week ever" award. It is always a 0.0 and there are 17 of
+    # them, so the winner is whichever zero happens to sort first -- an
+    # arbitrary pick dressed up as a record. Donut king below tells the
+    # same joke with a real count behind it.
     donuts = [o for o in owner_rows if o["zeroes"]]
     if donuts:
         king = min(donuts, key=lambda o: (-o["zeroes"], o["owner"]))

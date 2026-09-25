@@ -88,9 +88,13 @@ The one page nobody asked for. Every kicker ever **started** in this league,
 2019 on, ranked by the points they actually put on somebody's board —
 bench points don't count, because the joke is that these are points an owner
 looked at their lineup and chose. Same data cut by owner (who the position
-has been kind to), each season's leading leg, and a trophy case: best and
-worst week ever, the donut king, the longest owner-kicker marriage, the
-kicker who has played for more of this league than most of its owners.
+has been kind to), each season's leading leg, and a trophy case: the best
+week ever, the donut king, the longest owner-kicker marriage, the kicker who
+has played for more of this league than most of its owners.
+
+There is no "worst week ever" trophy. It would always be a 0.0, and the
+league has seventeen of those — the winner would just be whichever zero
+sorted first. The donut count does that job with a real number behind it.
 
 It runs off `data/starters-<season>.json`, which is also the groundwork for
 anything else lineup-level — matchup cards, weekly recaps, optimal-lineup

@@ -1828,11 +1828,16 @@ class TestKickerStats(unittest.TestCase):
     def test_golden_boot_goes_to_the_all_time_leader(self):
         self.assertEqual(self.awards["The Golden Boot"]["headline"], "Alpha Kicks")
 
-    def test_best_and_worst_week_awards(self):
+    def test_best_week_award(self):
         self.assertIn("Alpha Kicks", self.awards["Best week ever"]["headline"])
         self.assertIn("20.0", self.awards["Best week ever"]["headline"])
-        self.assertIn("Bravo Boot", self.awards["Worst week ever"]["headline"])
-        self.assertIn("0.0", self.awards["Worst week ever"]["headline"])
+
+    def test_there_is_no_worst_week_award(self):
+        # Dropped on purpose: the worst kicker week is always a 0.0 and the
+        # league has 17 of them, so the "record" is only whichever zero
+        # sorts first. Donut king counts them instead, which is the same
+        # joke with something real behind it.
+        self.assertNotIn("Worst week ever", self.awards)
 
     def test_donut_king_is_the_owner_with_the_most_scoreless_starts(self):
         self.assertEqual(self.awards["Donut king"]["headline"], "First2")
