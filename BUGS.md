@@ -9,31 +9,6 @@ fixed), status.
 
 ## Open
 
-- **BUG-010** (2026-09-28) — Team pages: season picker and logo link 404.
-  Found in the post-ENH-025 review (Playwright, resolving every link on
-  `docs/team/2.html` and `docs/2019/team/2.html`).
-  - **What's wrong:** team pages live one folder down (`team/<id>.html`).
-    ENH-025 added `root_prefix` to the nav links, stylesheet and favicon, but
-    not to two relative URLs in `layout.html`:
-    - the header logo's `href="index.html"` resolves to `team/index.html`;
-    - the season picker's option values (`{{ base }}{{ s }}/{{ active_page }}`)
-      resolve from the page's own folder. From `team/2.html`, "2025" goes to
-      `team/2025/team/2.html`. From `2019/team/2.html`, "2025" goes to
-      `2019/2025/team/2.html`, and "2026" reloads the same 2019 page.
-  - **Impact:** on every team page in every season, the logo and all season
-    options are dead links, or land on the wrong page. Flat pages are
-    unaffected. This was missed because ENH-025's Playwright check looked for
-    404s on page load, not on link targets.
-  - **Also fix while in there:** the `build.py` comment says team IDs are
-    "stable per owner across seasons", which is false for **teamId 9**
-    (Maxwell 2019–20, Daniel Sharp 2021+). Once the picker works, switching
-    seasons on team 9's page across 2020→2021 lands on the other owner.
-    Either accept that and correct the comment, or have the picker match by
-    owner for team pages.
-  - **Verify:** for a current-season and a 2019 team page, resolve the logo
-    href and every picker option with `new URL(value, location.href)`, and
-    check that each one returns 200 and is the page you expect.
-  - Status: open.
 - **BUG-011** (2026-09-28) — `TestPassphraseGate` fails when
   `LEAGUE_PHRASE_SHA256` is set in the shell. Found by the ENH-025 session
   (WORKLOG). The test isolates `LEAGUE_PHRASE` but not the digest
@@ -69,3 +44,8 @@ One line each (full write-ups: git history, 2026-09-18 → 2026-09-22).
   sortable **Finish** column, **Final Standings** table. **Standing rule:** the
   league reseeds the playoffs by hand, so ESPN's `playoffSeed` is wrong — use
   `rankCalculatedFinal`.
+- **BUG-010** (2026-09-28) — team-page logo + season picker resolved off the
+  page's own folder (dead or wrong links) → both now climb to the site root
+  via `root_prefix` + `base` in `layout.html`; accepted that teamId 9 changes
+  owners across seasons (Maxwell 2019–20, Daniel Sharp 2021+) — comment
+  corrected in `build.py`, owner-matching picker logged as ENH-027.

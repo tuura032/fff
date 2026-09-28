@@ -320,9 +320,10 @@ def main():
             corrupt non-ASCII text (owner names, dashes) in the HTML.
 
             root_prefix: pages written one level below the season root
-            (team/<id>.html) need the nav links to climb back up one
-            directory; flat pages get "". layout.html's season picker does
-            not need it -- it builds cross-season URLs off base + active_page.
+            (team/<id>.html) need the nav links and the season picker to
+            climb back up one directory; flat pages get "". The picker
+            combines it with base ("" at the root season, "../" for past
+            seasons) so its URLs resolve off the site root from either depth.
             """
             root_prefix = "../" if out.parent != out_dir else ""
             html = env.get_template(template).render(
@@ -349,9 +350,12 @@ def main():
             emit(template, out_dir / out_name, out_name)
 
         # Team pages (ENH-025): an index at team.html, then one page per
-        # team under team/<teamId>.html. Team IDs are stable per owner
-        # across seasons, so the season picker's links from a team page to
-        # team/<id> in another year land on the same owner's page.
+        # team under team/<teamId>.html. NOTE: team IDs are NOT guaranteed
+        # to stay with the same owner across seasons (teamId 9 was Maxwell
+        # in 2019-20, Daniel Sharp from 2021 on -- BUG-010), so the season
+        # picker's team/<id> links can land on a different owner's page when
+        # ESPN reuses an ID. Accepted for now; an owner-matching picker is
+        # the follow-up (ENH-027).
         emit("team.html", out_dir / "team.html", "team.html")
         for row in sorted(data["standings"], key=lambda s: s["teamId"]):
             team_data = compute.build_team_season(data, row["teamId"])

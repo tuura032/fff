@@ -81,7 +81,7 @@
          everywhere removes that whole class of bug instead of patching
          around it again. -->
     <header class="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between bg-slate-900 px-4 shadow-sm dark:bg-black">
-      <a href="index.html" class="flex items-center gap-2.5">
+      <a href="{{ root_prefix }}index.html" class="flex items-center gap-2.5">
         <!-- Placeholder logo: a clean vector take on the FFF favicon
              (green circle, white FFF). Inline SVG so it is one less
              request and stays crisp at any size. When a real mark exists,
@@ -134,7 +134,11 @@
       {% if s == season %}
       <option selected disabled>{{ s }}{% if s == current_season %} (current){% endif %}</option>
       {% else %}
-      <option value="{{ base }}{% if s != root_season %}{{ s }}/{% endif %}{{ active_page }}">{{ s }}{% if s == current_season %} (current){% endif %}</option>
+      {#- root_prefix ("" flat, "../" for team/<id>.html) plus base ("" at the
+          root season, "../" for past seasons) climb from this page's folder
+          to the site root, so every option resolves off the root from either
+          depth -- from 2019/team/2.html the prefix is "../../". -#}
+      <option value="{{ root_prefix }}{{ base }}{% if s != root_season %}{{ s }}/{% endif %}{{ active_page }}">{{ s }}{% if s == current_season %} (current){% endif %}</option>
       {% endif %}
       {% endfor %}
     </select>
