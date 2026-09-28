@@ -9,7 +9,37 @@ fixed), status.
 
 ## Open
 
-_None._
+- **BUG-010** (2026-09-28) — Team pages: season picker and logo link 404.
+  Found in the post-ENH-025 review (Playwright, resolving every link on
+  `docs/team/2.html` and `docs/2019/team/2.html`).
+  - **What's wrong:** team pages live one folder down (`team/<id>.html`).
+    ENH-025 added `root_prefix` to the nav links, stylesheet and favicon, but
+    not to two relative URLs in `layout.html`:
+    - the header logo's `href="index.html"` resolves to `team/index.html`;
+    - the season picker's option values (`{{ base }}{{ s }}/{{ active_page }}`)
+      resolve from the page's own folder. From `team/2.html`, "2025" goes to
+      `team/2025/team/2.html`. From `2019/team/2.html`, "2025" goes to
+      `2019/2025/team/2.html`, and "2026" reloads the same 2019 page.
+  - **Impact:** on every team page in every season, the logo and all season
+    options are dead links, or land on the wrong page. Flat pages are
+    unaffected. This was missed because ENH-025's Playwright check looked for
+    404s on page load, not on link targets.
+  - **Also fix while in there:** the `build.py` comment says team IDs are
+    "stable per owner across seasons", which is false for **teamId 9**
+    (Maxwell 2019–20, Daniel Sharp 2021+). Once the picker works, switching
+    seasons on team 9's page across 2020→2021 lands on the other owner.
+    Either accept that and correct the comment, or have the picker match by
+    owner for team pages.
+  - **Verify:** for a current-season and a 2019 team page, resolve the logo
+    href and every picker option with `new URL(value, location.href)`, and
+    check that each one returns 200 and is the page you expect.
+  - Status: open.
+- **BUG-011** (2026-09-28) — `TestPassphraseGate` fails when
+  `LEAGUE_PHRASE_SHA256` is set in the shell. Found by the ENH-025 session
+  (WORKLOG). The test isolates `LEAGUE_PHRASE` but not the digest
+  passthrough, so a leftover digest from a gated local rebuild makes it fail
+  for reasons unrelated to the code. Fix: have the test clear or patch both
+  env vars. Low impact, since only local test runs are affected. Status: open.
 
 ## Resolved
 

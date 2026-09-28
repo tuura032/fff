@@ -70,6 +70,14 @@ status.
     luck.
   - Pythagorean/margin luck is **degenerate here**: in H2H the higher scorer
     always wins (0 exceptions in 2024), so there's no "outscored but lost."
+- **ENH-026** — Team page polish: the ENH-025 pieces that didn't ship
+  (2026-09-28). (1) Header stat tiles instead of the one-line summary: dual
+  rank, dual points with the h2h/top-half split, record, PF/PA, average,
+  all-play % (the all-play numbers are already in the season Stats data).
+  (2) The weekly chart as bars colored by win/loss, keeping the dashed
+  score-to-beat line. That makes "won with a bottom-half score" and "lost
+  with a top-half score" visible at a glance, which the current line chart
+  hides. Do BUG-010 first, since it touches the same page.
 
 ## Open — polish & UX
 
@@ -122,10 +130,10 @@ for template rendering (the screenshot baseline is the right tool for that).
 
 - **ENH-025** — Team pages + data freshness + missing stats — done
   2026-09-28. One page per team per season: a `team.html` index linking
-  every team, and `team/<teamId>.html` with header stat tiles (dual rank and
-  points with the h2h/top-half split, record, PF/PA, avg, all-play %), a
-  win/loss weekly score chart with the score-to-beat line (Chart.js 2.7.1
-  config, theme-aware), a 2/1/0 dual-points chip per week, linked schedule
+  every team, and `team/<teamId>.html` with a one-line header (rank, dual
+  points, record, PF/PA, final rank), a weekly score line chart with the
+  score-to-beat line (Chart.js 2.7.1 config, theme-aware), a 2/1/0
+  dual-points chip per week, linked schedule
   and separate postseason tables, and this-season H2H vs. every other team.
   Team names link to their pages from every table that shows them. Footer
   "Data through week N · updated …" freshness line (absolute date in HTML,
@@ -138,6 +146,10 @@ for template rendering (the screenshot baseline is the right tool for that).
   desktop/mobile checks show no console errors, no 404s, no horizontal page
   scroll at 390px (tables scroll inside their own containers, as everywhere
   else on the site).
+  - *Corrected 2026-09-28 in review:* this entry originally said the header
+    had stat tiles with all-play % and that the chart was a win/loss bar
+    chart. Neither shipped; they're now ENH-026. The season picker and logo
+    link are broken on team pages: BUG-010.
 - **ENH-015** — "Last updated" stamp — done 2026-09-28, shipped as the
   freshness line in ENH-025 part B.
 - **ENH-024** — All-time kicker rankings (owner idea, 2026-09-24) — done
