@@ -320,15 +320,24 @@ a schedule:
 ```yaml
 on:
   schedule:
-    - cron: '0 13 * * *'    # daily ~8am ET
-  workflow_dispatch:         # manual "run now"
+    - cron: '0 8 * * *'       # daily: stat corrections + safety net
+    - cron: '0 13-23 * * 0'   # Sunday: hourly through the final
+    - cron: '0 18-23 * * 1,4' # Mon/Thu: the night game
+    - cron: '0 0 * * 1,4'     # Mon/Thu midnight
+  workflow_dispatch:         # manual "run now" (Actions UI)
+timezone: America/New_York   # crons above are ET, not UTC
 ```
 
-Run fetch → compute → build, then **commit only if output changed**.
+Run fetch → compute → build, then **commit only if the rendered site
+(`docs/`) changed** — not merely the data: `raw-*.json` carries live
+in-game scores on game weeks, which would churn a commit every run while
+the site stays byte-identical. When `docs/` changes, `data/` ships with it
+as a consistent snapshot.
 
-Daily rather than weekly: ESPN issues stat corrections for a day or two after
-games, and a daily idempotent run absorbs them. One missed run then costs
-nothing.
+Hourly on game nights rather than once a day: ESPN finalizes scores shortly
+after the final whistle, so the site picks up the new week within ~an hour
+of games ending; the daily run absorbs ESPN's stat corrections for a day or
+two after games. One missed run then costs nothing.
 
 **Known limitation, document it in the README:** GitHub disables scheduled
 workflows on public repos after **60 days of repository inactivity**. In-season

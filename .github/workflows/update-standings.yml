@@ -2,11 +2,21 @@ name: update-standings
 
 on:
   schedule:
-    - cron: '0 13 * * *'    # daily ~8am ET
-  workflow_dispatch:         # manual "run now"
+    # Crons below are ET (see timezone:). Game nights: ESPN finalizes scores
+    # shortly after the final whistle, so the site picks up the new week
+    # within ~an hour of games ending. The extra runs are free -- the commit
+    # gate only fires when the rendered site actually changes, and a skipped
+    # or delayed run is covered by the next one.
+    - cron: '0 8 * * *'       # daily: stat corrections + safety net
+    - cron: '0 13-23 * * 0'   # Sunday: last games end 8:20pm
+    - cron: '0 18-23 * * 1,4' # Monday/Thursday: the night game
+    - cron: '0 0 * * 1,4'     # midnight: the night game's final
+  workflow_dispatch:          # manual "run now" (Actions UI; not linked from the site)
 
 permissions:
   contents: write
+
+timezone: America/New_York
 
 jobs:
   update:
@@ -49,8 +59,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/ docs/
-          if git diff --cached --quiet; then
-            echo "No changes - skipping commit."
+          # Gate on docs/ (the rendered site), not data/: raw-*.json carries
+          # live in-game scores on game weeks, which churn every run while
+          # the site stays byte-identical. When docs/ does change, data/
+          # ships with it as a consistent snapshot.
+          if git diff --cached --quiet -- docs/; then
+            echo "Site unchanged - skipping commit."
           else
             git commit -m "Update standings (auto)"
             git push

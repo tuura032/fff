@@ -302,10 +302,13 @@ here, which is why the names are stripped at the source instead.
 ## Deployment
 
 GitHub Pages serves `docs/` from the `main` branch. A GitHub Actions workflow
-runs daily at ~8am ET and on manual dispatch: fetch → compute → build, then
-**commits only if the output changed**. Daily rather than weekly: ESPN issues
-stat corrections for a day or two after games, and a daily idempotent run
-absorbs them.
+runs hourly on game nights (Sunday 1–11pm, Monday and Thursday 6–11pm and
+midnight, ET) and daily at 8am, plus on manual dispatch from the Actions UI:
+fetch → compute → build, then **commits only if the rendered site (`docs/`)
+changed** — data-only churn such as live in-game scores does not commit.
+Hourly on game nights: ESPN finalizes scores shortly after the final
+whistle, and the daily run absorbs ESPN's stat corrections for a day or two
+after games.
 
 **Known limitation:** GitHub disables scheduled workflows on public repos
 after **60 days of repository inactivity**. In-season the job commits
