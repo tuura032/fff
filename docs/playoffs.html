@@ -67,7 +67,7 @@
          the cached CSS with the new HTML (that is how the header redesign
          shipped broken). Don't "clean up" the ?v= in docs/ -- it comes from
          here. -->
-    <link rel="stylesheet" href="static/css/app.css?v=03214531554c">
+    <link rel="stylesheet" href="static/css/app.css?v=bbabfd87215d">
     <link rel="shortcut icon" type="image/png" href="static/fffIcon.png"/>
 
     <title>
@@ -117,8 +117,6 @@
          desktop, a bar under the header on mobile. Same markup, laid out
          differently by breakpoint utilities, so there's exactly one nav
          to keep in sync with active_page instead of two. -->
-
-    
 
     <!-- Desktop sidebar -->
     <aside class="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col border-r border-slate-200 bg-white pt-14 md:flex dark:border-slate-800 dark:bg-slate-900">
@@ -176,129 +174,159 @@
             </button>
             <ul id="owners-panel" class="mt-1 hidden max-h-64 space-y-0.5 overflow-y-auto pl-2">
               
-              <li title="Jamie Sug — Team Jamie">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/6.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Jamie Sug — Team Jamie">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">1</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Jamie</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Jamie</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Daniel Sha — Wyld Stallyns">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/9.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Daniel Sha — Wyld Stallyns">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">2</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Daniel Sh.</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Wyld Stallyns</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Pat Ben — De&#39;Von to Break Free">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/11.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Pat Ben — De&#39;Von to Break Free">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">3</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Pat</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">De&#39;Von to Break Free</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Daniel Sen — Daniel&#39;s Driven Team">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/7.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Daniel Sen — Daniel&#39;s Driven Team">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">4</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Daniel Se.</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Daniel&#39;s Driven Team</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Paul Tuu — Walker, Kenneth Ranger">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/1.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Paul Tuu — Walker, Kenneth Ranger">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">5</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Paul</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Walker, Kenneth Ranger</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Nick Kub — Saquon Deez Nuts">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/5.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Nick Kub — Saquon Deez Nuts">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">6</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Nick</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Saquon Deez Nuts</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Casey Pir — Taylor Sailors">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/2.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Casey Pir — Taylor Sailors">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">7</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Casey</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Taylor Sailors</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Davíd Hui — Praise JA">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/12.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Davíd Hui — Praise JA">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">8</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Davíd</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Praise JA</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Ethan Hil — Team Ethan">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/10.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Ethan Hil — Team Ethan">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">9</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Ethan</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Ethan</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Sam Eng — Chat, Draft My Team">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/3.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Sam Eng — Chat, Draft My Team">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">10</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Sam</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Chat, Draft My Team</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Nicholas Pol — Ultimate Fulfillment">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/4.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Nicholas Pol — Ultimate Fulfillment">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">11</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Nicholas</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Ultimate Fulfillment</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Eric Mon — C0KER COLA">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/8.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Eric Mon — C0KER COLA">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">12</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Eric</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">C0KER COLA</span>
                   </span>
-                </div>
+                </a>
               </li>
               
             </ul>
           </div>
 
+          <a href="team.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="users" class="h-4 w-4 shrink-0"></span>
+      Teams
+    </a>
           <a href="playoffs.html"
        class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
               bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
@@ -385,6 +413,12 @@
               text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
       <span data-feather="home" class="h-4 w-4 shrink-0"></span>
       Home
+    </a>
+        <a href="team.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="users" class="h-4 w-4 shrink-0"></span>
+      Teams
     </a>
         <a href="playoffs.html"
        class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
@@ -498,7 +532,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">1</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Jamie</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/6.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Jamie</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">4</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">22</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">0</td>
@@ -510,7 +546,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">2</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Daniel Sh.</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/9.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Daniel Sh.</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">4</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">22</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">0</td>
@@ -522,7 +560,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">3</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Pat</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/11.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Pat</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">3</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">23</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">1</td>
@@ -534,7 +574,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">4</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Daniel Se.</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/7.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Daniel Se.</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">3</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">23</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">1</td>
@@ -546,7 +588,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">5</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Paul</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/1.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Paul</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">2</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">24</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">2</td>
@@ -558,7 +602,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">6</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Nick</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/5.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Nick</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">2</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">24</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">2</td>
@@ -570,7 +616,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">7</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Casey</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/2.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Casey</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">2</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">24</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">2</td>
@@ -582,7 +630,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">8</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Davíd</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/12.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Davíd</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">2</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">24</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">2</td>
@@ -594,7 +644,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">9</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Ethan</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/10.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Ethan</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">1</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">25</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">3</td>
@@ -606,7 +658,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">10</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Sam</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/3.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Sam</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">1</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">25</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">3</td>
@@ -618,7 +672,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">11</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Nicholas</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/4.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Nicholas</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">0</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">26</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">4</td>
@@ -630,7 +686,9 @@
       
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">12</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">Eric</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/8.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">Eric</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">0</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">26</td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">4</td>
@@ -773,6 +831,43 @@
 
 
     </main>
+
+    
+    
+    <footer class="px-4 pb-8 md:pl-60 md:pr-8">
+      <p class="text-xs text-slate-400 dark:text-slate-500">
+        Data through week 2
+        &middot; updated <span id="data-updated" data-updated="2026-09-27T17:35:59Z"></span>
+        <span class="mx-1" aria-hidden="true">&middot;</span>
+        <a href="https://github.com/tuura032/fff/actions/workflows/update-standings.yml"
+           target="_blank" rel="noopener"
+           class="text-slate-500 hover:text-blue-700 hover:underline dark:text-slate-400 dark:hover:text-blue-400">Run an update now &#8599;</a>
+      </p>
+    </footer>
+    <script>
+      (function () {
+        var el = document.getElementById("data-updated");
+        if (!el) return;
+        var stamp = el.getAttribute("data-updated");
+        var then = new Date(stamp);
+        if (isNaN(then.getTime())) { el.textContent = stamp; return; }
+        var mins = Math.floor((Date.now() - then.getTime()) / 60000);
+        var text;
+        if (mins < 1) {
+          text = "just now";
+        } else if (mins < 60) {
+          text = mins + (mins === 1 ? " minute ago" : " minutes ago");
+        } else if (mins < 60 * 24) {
+          var h = Math.floor(mins / 60);
+          text = h + (h === 1 ? " hour ago" : " hours ago");
+        } else {
+          var d = Math.floor(mins / (60 * 24));
+          text = d + (d === 1 ? " day ago" : " days ago");
+        }
+        el.textContent = text;
+      })();
+    </script>
+    
 
     <!-- Hidden color swatches: Chart.js paints its own canvas, so it can't
          pick up Tailwind's dark: variant from CSS the way the rest of the

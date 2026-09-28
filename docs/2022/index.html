@@ -67,7 +67,7 @@
          the cached CSS with the new HTML (that is how the header redesign
          shipped broken). Don't "clean up" the ?v= in docs/ -- it comes from
          here. -->
-    <link rel="stylesheet" href="static/css/app.css?v=03214531554c">
+    <link rel="stylesheet" href="static/css/app.css?v=bbabfd87215d">
     <link rel="shortcut icon" type="image/png" href="static/fffIcon.png"/>
 
     <title>
@@ -117,8 +117,6 @@
          desktop, a bar under the header on mobile. Same markup, laid out
          differently by breakpoint utilities, so there's exactly one nav
          to keep in sync with active_page instead of two. -->
-
-    
 
     <!-- Desktop sidebar -->
     <aside class="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col border-r border-slate-200 bg-white pt-14 md:flex dark:border-slate-800 dark:bg-slate-900">
@@ -176,129 +174,159 @@
             </button>
             <ul id="owners-panel" class="mt-1 hidden max-h-64 space-y-0.5 overflow-y-auto pl-2">
               
-              <li title="Eric Mon — THIRD IS THE WORD">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/8.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Eric Mon — THIRD IS THE WORD">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">1</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Eric</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">THIRD IS THE WORD</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Ethan Hil — Team Ethan">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/10.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Ethan Hil — Team Ethan">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">2</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Ethan</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Ethan</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Davíd Hui — Praise JA !">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/12.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Davíd Hui — Praise JA !">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">3</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Davíd</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Praise JA !</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Daniel Sha — Wyld Stallyns">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/9.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Daniel Sha — Wyld Stallyns">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">4</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Daniel Sh.</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Wyld Stallyns</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Nicholas Pol — Ultimate Fulfillment">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/4.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Nicholas Pol — Ultimate Fulfillment">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">5</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Nicholas</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Ultimate Fulfillment</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Casey Pir — Lucy in theSkyy with Dalvin">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/2.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Casey Pir — Lucy in theSkyy with Dalvin">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">6</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Casey</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Lucy in theSkyy with Dalvin</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Daniel Sen — Mahomes and Mahomies">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/7.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Daniel Sen — Mahomes and Mahomies">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">7</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Daniel Se.</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Mahomes and Mahomies</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Pat Ben — JJets &#34;Bangers Only&#34; Fan Club">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/11.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Pat Ben — JJets &#34;Bangers Only&#34; Fan Club">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">8</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Pat</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">JJets &#34;Bangers Only&#34; Fan Club</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Sam Eng — Baron  Baardvyurk">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/3.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Sam Eng — Baron  Baardvyurk">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">9</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Sam</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Baron  Baardvyurk</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Paul Tuu — Kameha Meha">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/1.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Paul Tuu — Kameha Meha">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">10</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Paul</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Kameha Meha</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Jamie Sug — Team Jamie">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/6.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Jamie Sug — Team Jamie">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">11</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Jamie</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Jamie</span>
                   </span>
-                </div>
+                </a>
               </li>
               
-              <li title="Nick Kub — Mobile Alabama Cntry Brkfsts">
-                <div class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <li>
+                <a href="team/5.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Nick Kub — Mobile Alabama Cntry Brkfsts">
                   <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">12</span>
                   <span class="min-w-0">
                     <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Nick</span>
                     <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Mobile Alabama Cntry Brkfsts</span>
                   </span>
-                </div>
+                </a>
               </li>
               
             </ul>
           </div>
 
+          <a href="team.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="users" class="h-4 w-4 shrink-0"></span>
+      Teams
+    </a>
           <a href="playoffs.html"
        class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
               text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
@@ -385,6 +413,12 @@
               bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
       <span data-feather="home" class="h-4 w-4 shrink-0"></span>
       Home<span class="sr-only"> (current)</span>
+    </a>
+        <a href="team.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="users" class="h-4 w-4 shrink-0"></span>
+      Teams
     </a>
         <a href="playoffs.html"
        class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
@@ -478,7 +512,7 @@
   <span class="text-2xl" aria-hidden="true">&#127942;</span>
   <span>
     <span class="block text-xs font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-400">2022 Champion</span>
-    <span class="block text-lg font-semibold text-slate-900 dark:text-white">Nicholas</span>
+    <a href="team/4.html" class="block text-lg font-semibold text-slate-900 hover:text-blue-700 dark:text-white dark:hover:text-blue-400">Nicholas</a>
     <span class="block text-xs text-slate-600 dark:text-slate-400">
       Beat Davíd 102.3&ndash;80.0 in the week 17 final &middot; see the full bracket
     </span>
@@ -525,9 +559,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Eric</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">THIRD IS THE WORD</span>
+            <a href="team/8.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Eric</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">THIRD IS THE WORD</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="3">
@@ -563,9 +599,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Ethan</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Team Ethan</span>
+            <a href="team/10.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Ethan</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Team Ethan</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="4">
@@ -601,9 +639,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Davíd</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Praise JA !</span>
+            <a href="team/12.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Davíd</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Praise JA !</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="2">
@@ -638,9 +678,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Daniel Sh.</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Wyld Stallyns</span>
+            <a href="team/9.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Daniel Sh.</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Wyld Stallyns</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="5">
@@ -675,9 +717,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Nicholas</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Ultimate Fulfillment</span>
+            <a href="team/4.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Nicholas</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Ultimate Fulfillment</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="1">
@@ -712,9 +756,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Casey</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Lucy in theSkyy with Dalvin</span>
+            <a href="team/2.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Casey</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Lucy in theSkyy with Dalvin</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="6">
@@ -755,9 +801,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Daniel Se.</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Mahomes and Mahomies</span>
+            <a href="team/7.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Daniel Se.</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Mahomes and Mahomies</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="7">
@@ -792,9 +840,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Pat</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">JJets &#34;Bangers Only&#34; Fan Club</span>
+            <a href="team/11.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Pat</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">JJets &#34;Bangers Only&#34; Fan Club</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="11">
@@ -829,9 +879,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Sam</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Baron  Baardvyurk</span>
+            <a href="team/3.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Sam</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Baron  Baardvyurk</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="12">
@@ -866,9 +918,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Paul</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Kameha Meha</span>
+            <a href="team/1.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Paul</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Kameha Meha</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="9">
@@ -903,9 +957,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Jamie</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Team Jamie</span>
+            <a href="team/6.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Jamie</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Team Jamie</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="8">
@@ -940,9 +996,11 @@
           </td>
           
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">Nick</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Mobile Alabama Cntry Brkfsts</span>
+            <a href="team/5.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Nick</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Mobile Alabama Cntry Brkfsts</span>
+            </a>
           </td>
           
           <td class="px-3 py-2 text-right" data-sort="10">
@@ -998,7 +1056,9 @@
     }
 
     rows.forEach(function (row) {
-      row.addEventListener('click', function () {
+      row.addEventListener('click', function (e) {
+        // A click on the team-page link navigates; don't also toggle the pin.
+        if (e.target.closest('a')) return;
         var current = null;
         try { current = localStorage.getItem(KEY); } catch (e) {}
         var next = current === row.dataset.owner ? null : row.dataset.owner;
@@ -1016,6 +1076,43 @@
 
 
     </main>
+
+    
+    
+    <footer class="px-4 pb-8 md:pl-60 md:pr-8">
+      <p class="text-xs text-slate-400 dark:text-slate-500">
+        Data through week 14
+        &middot; updated <span id="data-updated" data-updated="2026-09-23T19:26:32Z"></span>
+        <span class="mx-1" aria-hidden="true">&middot;</span>
+        <a href="https://github.com/tuura032/fff/actions/workflows/update-standings.yml"
+           target="_blank" rel="noopener"
+           class="text-slate-500 hover:text-blue-700 hover:underline dark:text-slate-400 dark:hover:text-blue-400">Run an update now &#8599;</a>
+      </p>
+    </footer>
+    <script>
+      (function () {
+        var el = document.getElementById("data-updated");
+        if (!el) return;
+        var stamp = el.getAttribute("data-updated");
+        var then = new Date(stamp);
+        if (isNaN(then.getTime())) { el.textContent = stamp; return; }
+        var mins = Math.floor((Date.now() - then.getTime()) / 60000);
+        var text;
+        if (mins < 1) {
+          text = "just now";
+        } else if (mins < 60) {
+          text = mins + (mins === 1 ? " minute ago" : " minutes ago");
+        } else if (mins < 60 * 24) {
+          var h = Math.floor(mins / 60);
+          text = h + (h === 1 ? " hour ago" : " hours ago");
+        } else {
+          var d = Math.floor(mins / (60 * 24));
+          text = d + (d === 1 ? " day ago" : " days ago");
+        }
+        el.textContent = text;
+      })();
+    </script>
+    
 
     <!-- Hidden color swatches: Chart.js paints its own canvas, so it can't
          pick up Tailwind's dark: variant from CSS the way the rest of the

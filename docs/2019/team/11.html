@@ -1,0 +1,1265 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Keep this out of search results. Unlike robots.txt, this is read
+         per page, so it works even though the site lives on a subpath
+         (user.github.io/repo/) where a crawler never looks for robots.txt.
+         noindex = don't list this page; nofollow = don't crawl on from its
+         links. This is what actually keeps the league off Google; the gate
+         only hides the content visually, since the HTML ships either way. -->
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Dark mode, no-flash: resolve the theme (stored override, else
+         system preference) and set it explicitly on <html> before first
+         paint. Tailwind's dark: variant here (src/tailwind.css) targets
+         [data-theme="dark"] directly rather than a prefers-color-scheme
+         media query, so this is the one place theme resolution happens —
+         CSS never has to guess. -->
+    <script>
+      (function () {
+        var theme = 'light';
+        try {
+          var stored = localStorage.getItem('theme');
+          theme = (stored === 'dark' || stored === 'light') ? stored
+            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+
+    
+    <!-- League passphrase gate. Everything on the page is still in the
+         HTML, so this keeps out search engines and passers-by, not anyone
+         who opens devtools -- a doorbell, not a lock. That is the deal we
+         took knowingly: surnames are stripped from the data at fetch time,
+         so there is nothing behind it worth working for.
+
+         The phrase is never committed. CI hashes it from a GitHub Secret
+         and only the digest below ships. -->
+    <style>
+      html:not([data-unlocked]) body > *:not(#league-gate) { display: none !important; }
+      #league-gate { display: none; }
+      html:not([data-unlocked]) #league-gate { display: flex; }
+    </style>
+    <script>
+      (function () {
+        var HASH = '409504e37dfdcb186ad0898f041474b6e66ecaae9fb14b4a02f5febc56998a50';
+        var KEY = 'leaguestats:unlocked';
+        try {
+          if (localStorage.getItem(KEY) === HASH) {
+            document.documentElement.setAttribute('data-unlocked', '1');
+          }
+        } catch (e) {
+          // Private mode with storage blocked: the gate just asks every
+          // visit rather than failing closed on a page that is public
+          // anyway.
+        }
+      })();
+    </script>
+    
+
+    <!-- build.py rewrites this href to app.css?v=<content-hash> in the built
+         output. The hash is what busts browser caches after a deploy: with a
+         stable URL, visitors who loaded the site before the push keep getting
+         the cached CSS with the new HTML (that is how the header redesign
+         shipped broken). Don't "clean up" the ?v= in docs/ -- it comes from
+         here. -->
+    <link rel="stylesheet" href="../static/css/app.css?v=bbabfd87215d">
+    <link rel="shortcut icon" type="image/png" href="../static/fffIcon.png"/>
+
+    <title>
+    Fantasy Football Fantasy
+</title>
+  </head>
+  <body class="h-full bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+
+    <!-- Header: fixed, full-width, always visible at every breakpoint —
+         the old Bootstrap build hid this entirely below 768px and only
+         home.html had a fallback nav, so playoffs/graph had NO navigation
+         on phones until that was patched. Keeping one header visible
+         everywhere removes that whole class of bug instead of patching
+         around it again. -->
+    <header class="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between bg-slate-900 px-4 shadow-sm dark:bg-black">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <!-- Placeholder logo: a clean vector take on the FFF favicon
+             (green circle, white FFF). Inline SVG so it is one less
+             request and stays crisp at any size. When a real mark exists,
+             replace this <svg> with an <img src="static/...">. -->
+        <svg class="h-7 w-7 shrink-0" viewBox="0 0 32 32" role="img" aria-label="FFF logo">
+          <circle cx="16" cy="16" r="16" fill="#00aa00"/>
+          <circle cx="16" cy="16" r="14.5" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1"/>
+          <text x="16" y="20.8" text-anchor="middle"
+                font-family="'Space Grotesk Variable', 'Inter Variable', sans-serif"
+                font-size="11.5" font-weight="700" letter-spacing="0.5" fill="#ffffff">FFF</text>
+        </svg>
+        <span class="font-display text-sm font-semibold tracking-tight text-white sm:text-base">
+          Fantasy Football Fantasy
+        </span>
+      </a>
+      <!-- Tagline: the gate page's brand line, centered where the bar is
+           wide enough for three zones. Absolutely positioned (not a flex
+           child) so it sits at the true middle of the bar instead of
+           drifting right of center next to the wider wordmark. Hidden on
+           mobile, where the bar only has room for wordmark + toggle. -->
+      <p class="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 text-[.65rem] font-semibold tracking-[0.3em] whitespace-nowrap text-slate-400 uppercase md:block">
+        Dual-point standings, rankings, and stats
+      </p>
+      <button class="theme-toggle-btn inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/25 text-white transition hover:border-white/60"
+              type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span data-feather="moon" class="theme-toggle-icon h-4 w-4"></span>
+      </button>
+    </header>
+
+    <!-- Season picker + page nav: rendered once and shown as a sidebar on
+         desktop, a bar under the header on mobile. Same markup, laid out
+         differently by breakpoint utilities, so there's exactly one nav
+         to keep in sync with active_page instead of two. -->
+
+    <!-- Desktop sidebar -->
+    <aside class="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col border-r border-slate-200 bg-white pt-14 md:flex dark:border-slate-800 dark:bg-slate-900">
+      <div class="flex-1 space-y-4 overflow-y-auto px-3 py-4">
+        <select class="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            aria-label="Season" onchange="if (this.value) location.href = this.value">
+      
+      
+      <option value="../team/11.html">2026 (current)</option>
+      
+      
+      
+      <option value="../2025/team/11.html">2025</option>
+      
+      
+      
+      <option value="../2024/team/11.html">2024</option>
+      
+      
+      
+      <option value="../2023/team/11.html">2023</option>
+      
+      
+      
+      <option value="../2022/team/11.html">2022</option>
+      
+      
+      
+      <option value="../2021/team/11.html">2021</option>
+      
+      
+      
+      <option value="../2020/team/11.html">2020</option>
+      
+      
+      
+      <option selected disabled>2019</option>
+      
+      
+    </select>
+        <nav class="space-y-1">
+          <a href="../index.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="home" class="h-4 w-4 shrink-0"></span>
+      Home
+    </a>
+
+          <div>
+            <button id="owners-toggle"
+                    class="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                    type="button" aria-expanded="false" aria-controls="owners-panel">
+              <span class="flex items-center gap-2"><span data-feather="users" class="h-4 w-4"></span> Owners</span>
+              <span data-feather="chevron-down" id="owners-chevron" class="h-4 w-4 transition-transform"></span>
+            </button>
+            <ul id="owners-panel" class="mt-1 hidden max-h-64 space-y-0.5 overflow-y-auto pl-2">
+              
+              <li>
+                <a href="../team/2.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Casey Pir — Cooper Troopers">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">1</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Casey</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Cooper Troopers</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/8.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Eric Mon — THE CHAMPN&#39;T IS HERE">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">2</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Eric</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">THE CHAMPN&#39;T IS HERE</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/11.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Pat Ben — ¡Yo Quiero Tac Odell!">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">3</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Pat</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">¡Yo Quiero Tac Odell!</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/1.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Paul Tuu — Kamara Meha">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">4</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Paul</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Kamara Meha</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/4.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Nicholas Pol — Ultimate Fulfillment">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">5</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Nicholas</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Ultimate Fulfillment</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/6.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Jamie Sug — Team Jamie">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">6</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Jamie</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Jamie</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/3.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Sam Eng — Amputees for Taking the Knee">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">7</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Sam</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Amputees for Taking the Knee</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/7.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Daniel Sen — Mahomes and Mahomies">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">8</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Daniel Se.</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Mahomes and Mahomies</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/12.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Davíd Hui — Team Davíd">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">9</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Davíd</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Davíd</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/5.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Nick Kub — Cleveland Bronns">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">10</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Nick</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Cleveland Bronns</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/10.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Ethan Hil — Team Ethan">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">11</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Ethan</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Ethan</span>
+                  </span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="../team/9.html"
+                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                   title="Maxwell Abr — Team Beer">
+                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">12</span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Maxwell</span>
+                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Beer</span>
+                  </span>
+                </a>
+              </li>
+              
+            </ul>
+          </div>
+
+          <a href="../team.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
+      <span data-feather="users" class="h-4 w-4 shrink-0"></span>
+      Teams<span class="sr-only"> (current)</span>
+    </a>
+          <a href="../playoffs.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="bar-chart-2" class="h-4 w-4 shrink-0"></span>
+      Playoffs and Prizes
+    </a>
+          <a href="../graph.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="layers" class="h-4 w-4 shrink-0"></span>
+      Stats
+    </a>
+          <a href="../rivalries.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="target" class="h-4 w-4 shrink-0"></span>
+      Rivalries
+    </a>
+          <a href="../careers.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="award" class="h-4 w-4 shrink-0"></span>
+      Career Stats
+    </a><a href="../kickers.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="wind" class="h-4 w-4 shrink-0"></span>
+      Kickers
+    </a>
+          <a href="../league.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="info" class="h-4 w-4 shrink-0"></span>
+      League Info
+    </a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Mobile nav: season picker + horizontally-scrollable page links,
+         directly under the (always-visible) header. -->
+    <div class="border-b border-slate-200 bg-white pt-14 md:hidden dark:border-slate-800 dark:bg-slate-900">
+      <div class="px-4 py-2">
+        <select class="w-full max-w-[12rem] rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            aria-label="Season" onchange="if (this.value) location.href = this.value">
+      
+      
+      <option value="../team/11.html">2026 (current)</option>
+      
+      
+      
+      <option value="../2025/team/11.html">2025</option>
+      
+      
+      
+      <option value="../2024/team/11.html">2024</option>
+      
+      
+      
+      <option value="../2023/team/11.html">2023</option>
+      
+      
+      
+      <option value="../2022/team/11.html">2022</option>
+      
+      
+      
+      <option value="../2021/team/11.html">2021</option>
+      
+      
+      
+      <option value="../2020/team/11.html">2020</option>
+      
+      
+      
+      <option selected disabled>2019</option>
+      
+      
+    </select>
+      </div>
+      <nav class="flex gap-1 overflow-x-auto px-2 pb-2 text-sm">
+        <a href="../index.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="home" class="h-4 w-4 shrink-0"></span>
+      Home
+    </a>
+        <a href="../team.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
+      <span data-feather="users" class="h-4 w-4 shrink-0"></span>
+      Teams<span class="sr-only"> (current)</span>
+    </a>
+        <a href="../playoffs.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="bar-chart-2" class="h-4 w-4 shrink-0"></span>
+      Playoffs
+    </a>
+        <a href="../graph.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="layers" class="h-4 w-4 shrink-0"></span>
+      Stats
+    </a>
+        <a href="../rivalries.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="target" class="h-4 w-4 shrink-0"></span>
+      Rivalries
+    </a>
+        <a href="../careers.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="award" class="h-4 w-4 shrink-0"></span>
+      Careers
+    </a>
+        <a href="../kickers.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="wind" class="h-4 w-4 shrink-0"></span>
+      Kickers
+    </a>
+        <a href="../league.html"
+       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      <span data-feather="info" class="h-4 w-4 shrink-0"></span>
+      League Info
+    </a>
+      </nav>
+    </div>
+
+    <main class="px-4 pt-6 pb-16 md:pt-20 md:pl-60 md:pr-8">
+      
+
+
+
+
+
+
+
+<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+  <h1 class="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">¡Yo Quiero Tac Odell!</h1>
+  <span class="text-sm text-slate-500 dark:text-slate-400">Pat</span>
+</div>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  2019 season &middot; Rank 3 &middot;
+  <span class="font-semibold text-slate-700 dark:text-slate-300">17</span> dual pts
+  &middot; 9-4
+  &middot; 1590.3 scored / 1383.8 against
+  &middot; finished #3
+</p>
+
+
+
+<h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Weekly scores</h2>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  Each week's score against that week's top-half line (dashed). The dual
+  points are under the chart: 2 for a win and a top-half finish, 1 for either
+  alone, 0 for neither.
+</p>
+<div class="mt-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+  <div class="relative h-[260px] w-full md:h-[340px]">
+    <canvas id="teamChart" role="img" aria-label="Line chart of ¡Yo Quiero Tac Odell!'s weekly score against the score to beat, 2019"></canvas>
+  </div>
+  <div class="mt-4 flex flex-wrap gap-x-3 gap-y-2">
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 1: 0 pts — loss">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W1</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">0</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 2: 2 pts — win, top half">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W2</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">2</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 3: 0 pts — loss">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W3</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">0</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 4: 2 pts — win, top half">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W4</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">2</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 5: 2 pts — win, top half">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W5</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">2</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 6: 2 pts — win, top half">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W6</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">2</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 7: 1 pt — win">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W7</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">1</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 8: 0 pts — loss">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W8</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">0</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 9: 2 pts — win, top half">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W9</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">2</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 10: 2 pts — win, top half">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W10</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">2</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 11: 1 pt — loss, top half">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W11</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">1</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 12: 2 pts — win, top half">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W12</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">2</span>
+    </span>
+    
+    <span class="inline-flex flex-col items-center"
+          title="Week 13: 1 pt — win">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W13</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">1</span>
+    </span>
+    
+  </div>
+</div>
+<h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Schedule</h2>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  Regular season, weeks 1&ndash;13. Dual points only count here.
+</p>
+<div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+  <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+    <thead class="bg-slate-50 dark:bg-slate-900/60">
+      <tr>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Wk</th>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opponent</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Score</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opp</th>
+        <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Result</th>
+        <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Top half</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Dual</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">1</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="2.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Casey</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">111.0</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">130.8</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">2</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="9.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Maxwell</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">157.3</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">113.6</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">3</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="4.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Nicholas</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">85.2</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">113.9</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">4</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="5.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Nick</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">112.4</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">102.7</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">5</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="12.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Davíd</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">145.5</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">71.9</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">6</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="8.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Eric</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">127.5</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">112.6</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">7</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="7.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Daniel Se.</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">92.1</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">73.3</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right font-bold text-amber-600 dark:text-amber-400">1</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">8</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="1.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Paul</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">99.9</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">132.7</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">9</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="6.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Jamie</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">106.4</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">105.9</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">10</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="3.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Sam</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">158.2</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">98.5</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">11</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="10.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Ethan</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">110.0</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">114.3</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        <td class="px-3 py-2 text-right font-bold text-amber-600 dark:text-amber-400">1</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">12</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="2.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Casey</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">178.8</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">109.4</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">13</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="9.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Maxwell</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">106.0</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">104.2</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right font-bold text-amber-600 dark:text-amber-400">1</td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+
+
+<h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Postseason</h2>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  Playoff and consolation games. Not counted toward dual points.
+</p>
+<div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+  <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+    <thead class="bg-slate-50 dark:bg-slate-900/60">
+      <tr>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Wk</th>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Round</th>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opponent</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Score</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opp</th>
+        <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Result</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">14</td>
+        <td class="px-3 py-2 whitespace-nowrap text-slate-500 dark:text-slate-400">Playoffs</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="6.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Jamie</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">106.4</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">84.5</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">15</td>
+        <td class="px-3 py-2 whitespace-nowrap text-slate-500 dark:text-slate-400">Playoffs</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="8.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Eric</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">146.7</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">147.3</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">16</td>
+        <td class="px-3 py-2 whitespace-nowrap text-slate-500 dark:text-slate-400">Winners Consolation Ladder</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="2.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Casey</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">113.2</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">59.4</td>
+        <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+
+
+<h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Head-to-head this season</h2>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  Regular-season meetings against every other team.
+</p>
+<div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+  <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+    <thead class="bg-slate-50 dark:bg-slate-900/60">
+      <tr>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opponent</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Record</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">PF</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">PA</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Margin</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="9.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Maxwell</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">2-0</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">263.3</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">217.8</td>
+        <td class="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">+45.5</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="12.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Davíd</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">1-0</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">145.5</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">71.9</td>
+        <td class="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">+73.6</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="3.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Sam</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">1-0</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">158.2</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">98.5</td>
+        <td class="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">+59.7</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="2.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Casey</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">1-1</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">289.8</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">240.2</td>
+        <td class="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">+49.6</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="7.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Daniel Se.</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">1-0</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">92.1</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">73.3</td>
+        <td class="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">+18.8</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="8.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Eric</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">1-0</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">127.5</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">112.6</td>
+        <td class="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">+14.9</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="5.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Nick</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">1-0</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">112.4</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">102.7</td>
+        <td class="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">+9.7</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="6.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Jamie</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">1-0</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">106.4</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">105.9</td>
+        <td class="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">+0.5</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="10.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Ethan</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">0-1</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">110.0</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">114.3</td>
+        <td class="px-3 py-2 text-right font-semibold text-rose-600 dark:text-rose-400">-4.3</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="4.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Nicholas</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">0-1</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">85.2</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">113.9</td>
+        <td class="px-3 py-2 text-right font-semibold text-rose-600 dark:text-rose-400">-28.7</td>
+      </tr>
+      
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="1.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">Paul</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">0-1</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">99.9</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">132.7</td>
+        <td class="px-3 py-2 text-right font-semibold text-rose-600 dark:text-rose-400">-32.8</td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+<script>
+  
+  document.addEventListener('DOMContentLoaded', function () {
+    var ctx = document.getElementById("teamChart");
+    if (!ctx) return;
+    var labels = [];
+    var scores = [];
+    var lines = [];
+    
+    labels.push("Wk 1");
+    scores.push(111.0);
+    lines.push(112.0);
+    
+    labels.push("Wk 2");
+    scores.push(157.3);
+    lines.push(104.0);
+    
+    labels.push("Wk 3");
+    scores.push(85.2);
+    lines.push(113.9);
+    
+    labels.push("Wk 4");
+    scores.push(112.4);
+    lines.push(107.2);
+    
+    labels.push("Wk 5");
+    scores.push(145.5);
+    lines.push(119.6);
+    
+    labels.push("Wk 6");
+    scores.push(127.5);
+    lines.push(105.0);
+    
+    labels.push("Wk 7");
+    scores.push(92.1);
+    lines.push(92.1);
+    
+    labels.push("Wk 8");
+    scores.push(99.9);
+    lines.push(99.9);
+    
+    labels.push("Wk 9");
+    scores.push(106.4);
+    lines.push(104.7);
+    
+    labels.push("Wk 10");
+    scores.push(158.2);
+    lines.push(92.5);
+    
+    labels.push("Wk 11");
+    scores.push(110.0);
+    lines.push(102.7);
+    
+    labels.push("Wk 12");
+    scores.push(178.8);
+    lines.push(93.3);
+    
+    labels.push("Wk 13");
+    scores.push(106.0);
+    lines.push(106.0);
+    
+    var data = {
+      labels: labels,
+      datasets: [
+        {
+          label: "\u00a1Yo Quiero Tac Odell!",
+          data: scores,
+          borderColor: '#0072B2',
+          backgroundColor: '#0072B2',
+          pointBackgroundColor: '#0072B2',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1,
+          fill: false
+        },
+        {
+          label: 'Score to beat',
+          data: lines,
+          borderColor: '#94a3b8',
+          backgroundColor: '#94a3b8',
+          borderDash: [6, 4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    };
+    function swatchColor(id) {
+      var el = document.getElementById(id);
+      return el ? getComputedStyle(el).color : '#868e96';
+    }
+    var fffChart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        hover: { mode: 'nearest', intersect: false },
+        elements: {
+          line: { borderWidth: 2, tension: 0 },
+          point: { radius: 2.5, hoverRadius: 6, hitRadius: 10 }
+        },
+        scales: {
+          xAxes: [{
+            gridLines: { display: false },
+            ticks: { fontColor: swatchColor('swatch-tick') }
+          }],
+          yAxes: [{
+            gridLines: { color: getComputedStyle(document.getElementById('swatch-grid')).borderColor },
+            ticks: { fontColor: swatchColor('swatch-tick'), beginAtZero: false }
+          }]
+        },
+        legend: {
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'circle',
+            boxWidth: 8,
+            fontColor: swatchColor('swatch-legend'),
+            padding: 12
+          }
+        },
+        tooltips: {
+          mode: 'nearest',
+          intersect: false,
+          backgroundColor: 'rgba(15, 23, 42, .92)',
+          titleFontStyle: 'normal',
+          bodySpacing: 2,
+          callbacks: {
+            label: function (item, ds) {
+              return ' ' + ds.datasets[item.datasetIndex].label + ': ' + item.yLabel;
+            }
+          }
+        }
+      }
+    });
+    window.addEventListener('themechange', function () {
+      var o = fffChart.options;
+      o.scales.xAxes[0].ticks.fontColor = swatchColor('swatch-tick');
+      o.scales.yAxes[0].ticks.fontColor = swatchColor('swatch-tick');
+      var grid = document.getElementById('swatch-grid');
+      if (grid) {
+        o.scales.yAxes[0].gridLines.color = getComputedStyle(grid).borderColor;
+      }
+      o.legend.labels.fontColor = swatchColor('swatch-legend');
+      fffChart.update();
+    });
+  });
+</script>
+
+
+
+
+    </main>
+
+    
+    
+    <footer class="px-4 pb-8 md:pl-60 md:pr-8">
+      <p class="text-xs text-slate-400 dark:text-slate-500">
+        Data through week 13
+        &middot; updated <span id="data-updated" data-updated="2026-09-23T19:26:32Z"></span>
+        <span class="mx-1" aria-hidden="true">&middot;</span>
+        <a href="https://github.com/tuura032/fff/actions/workflows/update-standings.yml"
+           target="_blank" rel="noopener"
+           class="text-slate-500 hover:text-blue-700 hover:underline dark:text-slate-400 dark:hover:text-blue-400">Run an update now &#8599;</a>
+      </p>
+    </footer>
+    <script>
+      (function () {
+        var el = document.getElementById("data-updated");
+        if (!el) return;
+        var stamp = el.getAttribute("data-updated");
+        var then = new Date(stamp);
+        if (isNaN(then.getTime())) { el.textContent = stamp; return; }
+        var mins = Math.floor((Date.now() - then.getTime()) / 60000);
+        var text;
+        if (mins < 1) {
+          text = "just now";
+        } else if (mins < 60) {
+          text = mins + (mins === 1 ? " minute ago" : " minutes ago");
+        } else if (mins < 60 * 24) {
+          var h = Math.floor(mins / 60);
+          text = h + (h === 1 ? " hour ago" : " hours ago");
+        } else {
+          var d = Math.floor(mins / (60 * 24));
+          text = d + (d === 1 ? " day ago" : " days ago");
+        }
+        el.textContent = text;
+      })();
+    </script>
+    
+
+    <!-- Hidden color swatches: Chart.js paints its own canvas, so it can't
+         pick up Tailwind's dark: variant from CSS the way the rest of the
+         page does. These exist only so JS can read a theme-correct
+         getComputedStyle() color instead of hardcoding hex per theme. -->
+    <div class="hidden" aria-hidden="true">
+      <span id="swatch-tick" class="text-slate-500 dark:text-slate-400"></span>
+      <span id="swatch-legend" class="text-slate-600 dark:text-slate-300"></span>
+      <span id="swatch-grid" class="border-slate-200 dark:border-slate-800" style="border-style: solid; border-width: 1px;"></span>
+    </div>
+
+    
+    <div id="league-gate" class="fixed inset-0 z-50 items-center justify-center overflow-y-auto bg-slate-950 px-6 py-12">
+      <div class="w-full max-w-2xl text-center">
+        <p class="text-[.7rem] font-bold tracking-[0.25em] text-amber-500 uppercase">Fantasy Football Fantasy</p>
+        <h1 class="font-display mt-5 text-3xl font-bold tracking-tight text-balance text-white sm:text-5xl">League standings and records</h1>
+        <p class="mx-auto mt-5 max-w-md text-sm leading-relaxed text-slate-400">
+          8 seasons of standings, rivalries, records and prize money.
+          Enter the league phrase to get in. Ask in the group chat if you don't have it.
+        </p>
+
+        <form id="league-gate-form" class="mx-auto mt-8 flex w-full max-w-sm flex-col gap-2 sm:flex-row" autocomplete="off">
+          <label for="league-gate-input" class="sr-only">League phrase</label>
+          <input id="league-gate-input" type="password" inputmode="text"
+                 class="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2.5 text-center text-sm text-slate-100 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 sm:text-left"
+                 placeholder="league phrase" autofocus>
+          <button type="submit"
+                  class="rounded-md bg-amber-500 px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-amber-950 transition hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-950">
+            Enter
+          </button>
+        </form>
+
+        <p id="league-gate-error" class="mt-3 hidden text-xs text-rose-400">That's not it. Try again.</p>
+        <p class="mt-10 text-xs text-slate-600">Private league page. Nothing here is affiliated with ESPN.</p>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var HASH = '409504e37dfdcb186ad0898f041474b6e66ecaae9fb14b4a02f5febc56998a50';
+        var KEY = 'leaguestats:unlocked';
+        var form = document.getElementById('league-gate-form');
+        var input = document.getElementById('league-gate-input');
+        var error = document.getElementById('league-gate-error');
+        if (!form) return;
+
+        async function sha256(text) {
+          var bytes = new TextEncoder().encode(text);
+          var digest = await crypto.subtle.digest('SHA-256', bytes);
+          return Array.from(new Uint8Array(digest))
+            .map(function (b) { return b.toString(16).padStart(2, '0'); })
+            .join('');
+        }
+
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          error.classList.add('hidden');
+          var got;
+          try {
+            // crypto.subtle needs a secure context. Pages is https, but a
+            // file:// preview isn't -- say so rather than failing silently.
+            got = await sha256(input.value.trim());
+          } catch (err) {
+            error.textContent = 'This page needs to be served over https to check the phrase.';
+            error.classList.remove('hidden');
+            return;
+          }
+          if (got === HASH) {
+            try { localStorage.setItem(KEY, HASH); } catch (e2) {}
+            document.documentElement.setAttribute('data-unlocked', '1');
+          } else {
+            input.value = '';
+            error.classList.remove('hidden');
+            input.focus();
+          }
+        });
+      })();
+    </script>
+    
+
+    <!-- Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.2/feather.min.js" integrity="sha512-zMm7+ZQ8AZr1r3W8Z8lDATkH05QG5Gm2xc6MlsCdBz9l6oE8Y7IXByMgSm/rdRQrhuHt99HAYfMljBOEZ68q5A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+      (function () {
+        function currentTheme() {
+          return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        }
+        function setIcons(theme) {
+          document.querySelectorAll('.theme-toggle-icon').forEach(function (icon) {
+            icon.setAttribute('data-feather', theme === 'dark' ? 'sun' : 'moon');
+          });
+        }
+
+        setIcons(currentTheme());
+        feather.replace();
+
+        document.querySelectorAll('.theme-toggle-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var next = currentTheme() === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('theme', next); } catch (e) {}
+            setIcons(next);
+            feather.replace();
+            window.dispatchEvent(new CustomEvent('themechange', { detail: next }));
+          });
+        });
+
+        // Owners collapse -- replaces Bootstrap's data-toggle="collapse"
+        // (which needed jQuery + Popper); this is the only interactive
+        // widget on the site that isn't a plain link, click-to-sort, or
+        // the theme toggle, so it doesn't need a library.
+        var ownersToggle = document.getElementById('owners-toggle');
+        var ownersPanel = document.getElementById('owners-panel');
+        var ownersChevron = document.getElementById('owners-chevron');
+        if (ownersToggle && ownersPanel) {
+          ownersToggle.addEventListener('click', function () {
+            var open = ownersPanel.classList.toggle('hidden') === false;
+            ownersToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (ownersChevron) ownersChevron.style.transform = open ? 'rotate(180deg)' : '';
+          });
+        }
+      })();
+    </script>
+
+    <!-- Graphs (dataset rendered from data/standings-<season>.json).
+         Only graph.html has a <canvas>, so the library and the whole
+         dataset payload are skipped on the other four pages rather than
+         downloaded and then ignored. -->
+    
+  </body>
+</html>

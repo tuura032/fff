@@ -56,7 +56,7 @@
   <span class="text-2xl" aria-hidden="true">&#127942;</span>
   <span>
     <span class="block text-xs font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-400">{{ season }} Champion</span>
-    <span class="block text-lg font-semibold text-slate-900 dark:text-white">{{ owner_by_team[playoffs.champion] | short }}</span>
+    <a href="team/{{ playoffs.champion }}.html" class="block text-lg font-semibold text-slate-900 hover:text-blue-700 dark:text-white dark:hover:text-blue-400">{{ owner_by_team[playoffs.champion] | short }}</a>
     <span class="block text-xs text-slate-600 dark:text-slate-400">
       Beat {{ owner_by_team[playoffs.runnerUp] | short }} {{ playoffs.championScore }}&ndash;{{ playoffs.runnerUpScore }} in the week {{ playoffs.finalWeek }} final &middot; see the full bracket
     </span>
@@ -125,9 +125,11 @@
              change every season, the people don't, so the owner is the
              identity the table leads with. #}
           <td class="px-3 py-2">
-            <span class="font-medium text-slate-900 dark:text-slate-100">{{ info.owner | short }}</span>
-            <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-            {% if info.name %}<span class="block truncate text-xs text-slate-400 dark:text-slate-500">{{ info.name }}</span>{% endif %}
+            <a href="team/{{ info.teamId }}.html" class="group block">
+              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">{{ info.owner | short }}</span>
+              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              {% if info.name %}<span class="block truncate text-xs text-slate-400 dark:text-slate-500">{{ info.name }}</span>{% endif %}
+            </a>
           </td>
           {% if has_final_ranks %}
           <td class="px-3 py-2 text-right" data-sort="{{ info.finalRank if info.finalRank else 999 }}">
@@ -195,7 +197,9 @@
     }
 
     rows.forEach(function (row) {
-      row.addEventListener('click', function () {
+      row.addEventListener('click', function (e) {
+        // A click on the team-page link navigates; don't also toggle the pin.
+        if (e.target.closest('a')) return;
         var current = null;
         try { current = localStorage.getItem(KEY); } catch (e) {}
         var next = current === row.dataset.owner ? null : row.dataset.owner;

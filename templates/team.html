@@ -1,0 +1,304 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Fantasy Football Fantasy
+{% endblock %}
+
+{% block main %}
+
+{% macro result_chip(result) -%}
+{%- if result == 'W' -%}
+<span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span>
+{%- elif result == 'L' -%}
+<span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span>
+{%- else -%}
+<span class="inline-block min-w-[2rem] rounded bg-slate-100 px-2 py-0.5 text-center text-xs font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">T</span>
+{%- endif -%}
+{%- endmacro %}
+
+{% if not team_data %}
+{# ------------------------------------------------------------------ #}
+{# The Teams index: one card per team, linking to its page.          #}
+{# ------------------------------------------------------------------ #}
+<h1 class="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Teams</h1>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  Pick a team for its {{ season }} season: weekly scores against the top-half
+  line, dual points, schedule, and head-to-head.
+</p>
+<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  {% for s in standings %}
+  <a href="team/{{ s.teamId }}.html"
+     class="group rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-300 hover:shadow dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/50">
+    <div class="flex items-baseline justify-between gap-2">
+      <span class="truncate font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">{{ s.name or s.owner | short }}</span>
+      <span class="shrink-0 text-xs font-semibold text-slate-400 dark:text-slate-500">#{{ s.rank }}</span>
+    </div>
+    {% if s.name %}
+    <div class="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{{ s.owner | short }}</div>
+    {% endif %}
+    <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+      <span class="font-semibold text-slate-700 dark:text-slate-300">{{ s.points }}</span> dual pts
+      &middot; {{ s.record }}
+      {% if s.finalRank %}&middot; finished #{{ s.finalRank }}{% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% else %}
+{# ------------------------------------------------------------------ #}
+{# One team's season page.                                            #}
+{# ------------------------------------------------------------------ #}
+<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+  <h1 class="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">{{ team_data.name or team_data.owner }}</h1>
+  <span class="text-sm text-slate-500 dark:text-slate-400">{{ team_data.owner | short }}</span>
+</div>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  {{ season }} season &middot; Rank {{ team_data.rank }} &middot;
+  <span class="font-semibold text-slate-700 dark:text-slate-300">{{ team_data.points }}</span> dual pts
+  &middot; {{ team_data.record }}
+  &middot; {{ team_data.pointsFor }} scored / {{ team_data.pointsAgainst }} against
+  {% if team_data.finalRank %}&middot; finished #{{ team_data.finalRank }}{% endif %}
+</p>
+
+{% set tiers = {'WINNERS_BRACKET': 'Playoffs', 'LOSERS_BRACKET': 'Consolation'} %}
+
+<h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Weekly scores</h2>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  Each week's score against that week's top-half line (dashed). The dual
+  points are under the chart: 2 for a win and a top-half finish, 1 for either
+  alone, 0 for neither.
+</p>
+<div class="mt-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+  <div class="relative h-[260px] w-full md:h-[340px]">
+    <canvas id="teamChart" role="img" aria-label="Line chart of {{ team_data.name or team_data.owner }}'s weekly score against the score to beat, {{ season }}"></canvas>
+  </div>
+  <div class="mt-4 flex flex-wrap gap-x-3 gap-y-2">
+    {% for w in team_data.weeks %}
+    <span class="inline-flex flex-col items-center"
+          title="Week {{ w.week }}: {{ w.weekPoints }} pt{{ 's' if w.weekPoints != 1 else '' }} — {{ 'win' if w.result == 'W' else 'loss' if w.result == 'L' else 'tie' }}{% if w.topHalf %}, top half{% endif %}">
+      <span class="text-[10px] leading-none text-slate-400 dark:text-slate-500">W{{ w.week }}</span>
+      <span class="mt-1 flex h-7 w-7 items-center justify-center rounded text-sm font-bold {{
+        'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400' if w.weekPoints == 2 else
+        ('bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400' if w.weekPoints == 1 else
+        'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400') }}">{{ w.weekPoints }}</span>
+    </span>
+    {% endfor %}
+  </div>
+</div>
+<h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Schedule</h2>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  Regular season, weeks 1&ndash;{{ throughWeek }}. Dual points only count here.
+</p>
+<div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+  <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+    <thead class="bg-slate-50 dark:bg-slate-900/60">
+      <tr>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Wk</th>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opponent</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Score</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opp</th>
+        <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Result</th>
+        <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Top half</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Dual</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+      {% for w in team_data.weeks %}
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">{{ w.week }}</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="{{ w.opponentId }}.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">{{ w.opponent | short }}</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap {{ 'font-semibold text-slate-900 dark:text-white' if w.result == 'W' else 'text-slate-500 dark:text-slate-400' }}">{{ w.score }}</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">{{ w.opponentScore }}</td>
+        <td class="px-3 py-2 text-center">{{ result_chip(w.result) }}</td>
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">{{ '✓' if w.topHalf else '' }}</td>
+        <td class="px-3 py-2 text-right font-bold {{
+          'text-emerald-600 dark:text-emerald-400' if w.weekPoints == 2 else
+          ('text-amber-600 dark:text-amber-400' if w.weekPoints == 1 else
+          'text-rose-500 dark:text-rose-400') }}">{{ w.weekPoints }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if team_data.postseason %}
+<h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Postseason</h2>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  Playoff and consolation games. Not counted toward dual points.
+</p>
+<div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+  <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+    <thead class="bg-slate-50 dark:bg-slate-900/60">
+      <tr>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Wk</th>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Round</th>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opponent</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Score</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opp</th>
+        <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Result</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+      {% for g in team_data.postseason %}
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 text-slate-500 dark:text-slate-400">{{ g.week }}</td>
+        <td class="px-3 py-2 whitespace-nowrap text-slate-500 dark:text-slate-400">{{ tiers.get(g.tier, g.tier | replace('_', ' ') | title) }}</td>
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="{{ g.opponentId }}.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">{{ g.opponent | short }}</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap {{ 'font-semibold text-slate-900 dark:text-white' if g.result == 'W' else 'text-slate-500 dark:text-slate-400' }}">{{ g.score }}</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">{{ g.opponentScore }}</td>
+        <td class="px-3 py-2 text-center">{{ result_chip(g.result) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Head-to-head this season</h2>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  Regular-season meetings against every other team.
+</p>
+<div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+  <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+    <thead class="bg-slate-50 dark:bg-slate-900/60">
+      <tr>
+        <th class="px-3 py-2 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opponent</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Record</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">PF</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">PA</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Margin</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+      {% for r in team_data.h2h %}
+      <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
+        <td class="px-3 py-2 font-medium whitespace-nowrap">
+          <a href="{{ r.teamId }}.html" class="text-slate-900 hover:text-blue-700 hover:underline dark:text-slate-100 dark:hover:text-blue-400">{{ r.owner | short }}</a>
+        </td>
+        <td class="px-3 py-2 text-right whitespace-nowrap text-slate-700 dark:text-slate-300">{{ r.wins }}-{{ r.losses }}{% if r.ties %}-{{ r.ties }}{% endif %}</td>
+        <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">{{ r.pointsFor }}</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">{{ r.pointsAgainst }}</td>
+        <td class="px-3 py-2 text-right {{ 'font-semibold text-emerald-600 dark:text-emerald-400' if r.margin > 0 else ('font-semibold text-rose-600 dark:text-rose-400' if r.margin < 0 else 'text-slate-500 dark:text-slate-400') }}">{% if r.margin > 0 %}+{% endif %}{{ r.margin }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Chart.js is pinned to 2.7.1, the same build the league graph uses -- the
+   newer 3.x syntax silently renders a blank chart, so the options below stay
+   in 2.7.1 shape (scales.xAxes/yAxes, legend/labels, tooltip item.yLabel). #}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+<script>
+  {# This script sits in {% block main %}, but the layout's color swatches
+     are parsed at the end of <body>, after the block. Reading them before
+     they exist threw on getComputedStyle(null) and killed the chart, so
+     init waits for document ready. The Chart.js tag above is synchronous,
+     so the library is already defined by then. #}
+  document.addEventListener('DOMContentLoaded', function () {
+    var ctx = document.getElementById("teamChart");
+    if (!ctx) return;
+    var labels = [];
+    var scores = [];
+    var lines = [];
+    {% for w in team_data.weeks %}
+    labels.push("Wk {{ w.week }}");
+    scores.push({{ w.score }});
+    lines.push({{ w.scoreToBeat }});
+    {% endfor %}
+    var data = {
+      labels: labels,
+      datasets: [
+        {
+          label: {{ (team_data.name or team_data.owner) | tojson }},
+          data: scores,
+          borderColor: '#0072B2',
+          backgroundColor: '#0072B2',
+          pointBackgroundColor: '#0072B2',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1,
+          fill: false
+        },
+        {
+          label: 'Score to beat',
+          data: lines,
+          borderColor: '#94a3b8',
+          backgroundColor: '#94a3b8',
+          borderDash: [6, 4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    };
+    function swatchColor(id) {
+      var el = document.getElementById(id);
+      return el ? getComputedStyle(el).color : '#868e96';
+    }
+    var fffChart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        hover: { mode: 'nearest', intersect: false },
+        elements: {
+          line: { borderWidth: 2, tension: 0 },
+          point: { radius: 2.5, hoverRadius: 6, hitRadius: 10 }
+        },
+        scales: {
+          xAxes: [{
+            gridLines: { display: false },
+            ticks: { fontColor: swatchColor('swatch-tick') }
+          }],
+          yAxes: [{
+            gridLines: { color: getComputedStyle(document.getElementById('swatch-grid')).borderColor },
+            ticks: { fontColor: swatchColor('swatch-tick'), beginAtZero: false }
+          }]
+        },
+        legend: {
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'circle',
+            boxWidth: 8,
+            fontColor: swatchColor('swatch-legend'),
+            padding: 12
+          }
+        },
+        tooltips: {
+          mode: 'nearest',
+          intersect: false,
+          backgroundColor: 'rgba(15, 23, 42, .92)',
+          titleFontStyle: 'normal',
+          bodySpacing: 2,
+          callbacks: {
+            label: function (item, ds) {
+              return ' ' + ds.datasets[item.datasetIndex].label + ': ' + item.yLabel;
+            }
+          }
+        }
+      }
+    });
+    window.addEventListener('themechange', function () {
+      var o = fffChart.options;
+      o.scales.xAxes[0].ticks.fontColor = swatchColor('swatch-tick');
+      o.scales.yAxes[0].ticks.fontColor = swatchColor('swatch-tick');
+      var grid = document.getElementById('swatch-grid');
+      if (grid) {
+        o.scales.yAxes[0].gridLines.color = getComputedStyle(grid).borderColor;
+      }
+      o.legend.labels.fontColor = swatchColor('swatch-legend');
+      fffChart.update();
+    });
+  });
+</script>
+
+{% endif %}
+
+{% endblock %}

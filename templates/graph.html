@@ -178,7 +178,9 @@
   <strong>All-play</strong> is your record if you'd played every other team every
   week, with the schedule removed. Compare it to your head-to-head record to see who
   got carried by the draw. <strong>Swing</strong> is the week-to-week standard
-  deviation: low is predictable, high is boom-or-bust. Click a column header to sort.
+  deviation: low is predictable, high is boom-or-bust. <strong>Loss Pts</strong> is what you scored in the games you
+  lost; <strong>Heartbreaks</strong> are losses by under 5, and <strong>Blowouts</strong>
+  are wins by 50+. Click a column header to sort.
 </p>
 
 {% set best_ap = season_stats.table | map(attribute='allPlayPct') | max %}
@@ -195,6 +197,9 @@
         <th class="sortable hidden px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase sm:table-cell dark:text-slate-400" title="Weeks as the league's top scorer">Wk Highs</th>
         <th class="sortable hidden px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase sm:table-cell dark:text-slate-400" title="Scored top half and lost anyway">Robbed</th>
         <th class="sortable hidden px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase sm:table-cell dark:text-slate-400" title="Won while scoring in the bottom half">Stole It</th>
+        <th class="sortable hidden px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase sm:table-cell dark:text-slate-400" title="Points scored in games that were lost">Loss Pts</th>
+        <th class="sortable hidden px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase sm:table-cell dark:text-slate-400" title="Losses decided by under 5 points">Heartbreaks</th>
+        <th class="sortable hidden px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase sm:table-cell dark:text-slate-400" title="Wins decided by 50+ points">Blowouts</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -222,6 +227,9 @@
         <td class="hidden px-3 py-2 text-right sm:table-cell {{ 'font-semibold text-slate-900 dark:text-white' if t.weeklyFirsts else 'text-slate-400 dark:text-slate-500' }}">{{ t.weeklyFirsts }}</td>
         <td class="hidden px-3 py-2 text-right sm:table-cell {{ 'font-semibold text-rose-600 dark:text-rose-400' if t.unluckyLosses else 'text-slate-400 dark:text-slate-500' }}">{{ t.unluckyLosses }}</td>
         <td class="hidden px-3 py-2 text-right sm:table-cell {{ 'font-semibold text-emerald-600 dark:text-emerald-400' if t.luckyWins else 'text-slate-400 dark:text-slate-500' }}">{{ t.luckyWins }}</td>
+        <td class="hidden px-3 py-2 text-right text-slate-700 sm:table-cell dark:text-slate-300">{{ t.pointsInLosses }}</td>
+        <td class="hidden px-3 py-2 text-right sm:table-cell {{ 'font-semibold text-rose-600 dark:text-rose-400' if t.heartbreaks else 'text-slate-400 dark:text-slate-500' }}">{{ t.heartbreaks }}</td>
+        <td class="hidden px-3 py-2 text-right sm:table-cell {{ 'font-semibold text-emerald-600 dark:text-emerald-400' if t.blowoutWins else 'text-slate-400 dark:text-slate-500' }}">{{ t.blowoutWins }}</td>
       </tr>
       {% endfor %}
     </tbody>

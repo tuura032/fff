@@ -63,9 +63,9 @@
   <span class="text-2xl" aria-hidden="true">&#127942;</span>
   <div>
     <div class="text-xs font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-400">{{ season }} Champion</div>
-    <div class="text-lg font-semibold text-slate-900 dark:text-white">{{ owner_by_team[playoffs.champion] | short }}</div>
+    <a href="team/{{ playoffs.champion }}.html" class="text-lg font-semibold text-slate-900 hover:text-blue-700 dark:text-white dark:hover:text-blue-400">{{ owner_by_team[playoffs.champion] | short }}</a>
     <div class="text-xs text-slate-600 dark:text-slate-400">
-      Beat {{ owner_by_team[playoffs.runnerUp] | short }} {{ playoffs.championScore }}&ndash;{{ playoffs.runnerUpScore }} in the week {{ playoffs.finalWeek }} final.
+      Beat <a href="team/{{ playoffs.runnerUp }}.html" class="hover:text-blue-700 hover:underline dark:hover:text-blue-400">{{ owner_by_team[playoffs.runnerUp] | short }}</a> {{ playoffs.championScore }}&ndash;{{ playoffs.runnerUpScore }} in the week {{ playoffs.finalWeek }} final.
     </div>
   </div>
 </div>
@@ -98,8 +98,12 @@
             <span class="{{ 'font-semibold text-slate-800 dark:text-slate-100' if info.finalRank <= 3 else 'text-slate-600 dark:text-slate-400' }}">{{ info.finalRank | ordinal }}</span>
           {% endif %}
         </td>
-        <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">{{ info.owner | short }}</td>
-        <td class="hidden px-3 py-2 text-slate-500 sm:table-cell dark:text-slate-400">{{ info.name }}</td>
+        <td class="px-3 py-2 font-medium">
+          <a href="team/{{ info.teamId }}.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">{{ info.owner | short }}</a>
+        </td>
+        <td class="hidden px-3 py-2 sm:table-cell">
+          <a href="team/{{ info.teamId }}.html" class="text-slate-500 hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-400">{{ info.name }}</a>
+        </td>
         <td class="px-3 py-2 text-right text-slate-600 dark:text-slate-400">{{ info.rank }}</td>
         <td class="hidden px-3 py-2 text-right text-slate-600 sm:table-cell dark:text-slate-400">{{ info.record }}</td>
         <td class="hidden px-3 py-2 text-right text-slate-600 sm:table-cell dark:text-slate-400">{{ info.pointsFor }}</td>
@@ -141,7 +145,9 @@
       {% for info in standings %}
         <tr class="transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70">
           <td class="px-3 py-2 text-slate-600 dark:text-slate-300">{{ loop.index }}</td>
-          <td class="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">{{ info.owner | short }}</td>
+          <td class="px-3 py-2 font-medium">
+            <a href="team/{{ info.teamId }}.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">{{ info.owner | short }}</a>
+          </td>
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">{{ info.points }}</td>
           {% if throughWeek < regularSeasonWeeks %}<td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">{{ [0, (((regularSeasonWeeks - throughWeek) * 2) + standings[playoff_cut].points - info.points) | round | int] | max }}</td>{% endif %}
           <td class="px-3 py-2 text-right text-slate-700 dark:text-slate-300">{{ standings[0].points - info.points }}</td>

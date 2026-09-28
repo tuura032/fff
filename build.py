@@ -313,22 +313,53 @@ def main():
             "updated": data.get("updated"),
             "leagueName": data.get("leagueName"),
         }
-        for template, out_name in pages:
-            out = out_dir / out_name
-            # active_page drives the sidebar's active nav state (L5).
-            # encoding="utf-8": the locale default (cp1252 on Windows) would
-            # corrupt non-ASCII text (owner names, dashes) in the HTML.
-            html = env.get_template(template).render(active_page=out_name, **context)
+        def emit(template, out, active_page, **extra):
+            """Render one template to out and apply the cache-bust swap.
+
+            encoding="utf-8": the locale default (cp1252 on Windows) would
+            corrupt non-ASCII text (owner names, dashes) in the HTML.
+
+            root_prefix: pages written one level below the season root
+            (team/<id>.html) need the nav links to climb back up one
+            directory; flat pages get "". layout.html's season picker does
+            not need it -- it builds cross-season URLs off base + active_page.
+            """
+            root_prefix = "../" if out.parent != out_dir else ""
+            html = env.get_template(template).render(
+                active_page=active_page, root_prefix=root_prefix,
+                **{**context, **extra})
             # layout.html links the stylesheet by stable URL; point it at the
-            # content-hashed one (see css_version above).
-            html = html.replace('href="static/css/app.css"',
-                                f'href="static/css/app.css?v={css_version}"')
+            # content-hashed one (see css_version above). Team pages sit one
+            # level below the season root, so their asset URLs carry a ../
+            # prefix (root_prefix); accept both spellings.
+            html = re.sub(r'href="((?:\.\./)?)static/css/app\.css"',
+                          lambda m: f'href="{m.group(1)}'
+                                    f'static/css/app.css?v={css_version}"',
+                          html)
             if f"app.css?v={css_version}" not in html:
-                print(f"WARNING: {out_name} no longer references "
+                print(f"WARNING: {out} no longer references "
                       f"static/css/app.css; cache-busting not applied.",
                       file=sys.stderr)
+            out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(html + "\n", encoding="utf-8")
             print(f"Wrote {out}")
+
+        # active_page drives the sidebar's active nav state (L5).
+        for template, out_name in pages:
+            emit(template, out_dir / out_name, out_name)
+
+        # Team pages (ENH-025): an index at team.html, then one page per
+        # team under team/<teamId>.html. Team IDs are stable per owner
+        # across seasons, so the season picker's links from a team page to
+        # team/<id> in another year land on the same owner's page.
+        emit("team.html", out_dir / "team.html", "team.html")
+        for row in sorted(data["standings"], key=lambda s: s["teamId"]):
+            team_data = compute.build_team_season(data, row["teamId"])
+            if team_data is None:
+                continue
+            team_page = f"team/{row['teamId']}.html"
+            emit("team.html", out_dir / team_page, team_page,
+                 team_data=team_data)
         # The templates reference static/ relatively, so every output
         # directory needs its own copy. rmtree first: dirs_exist_ok=True
         # merges instead of mirroring, so a file removed from static/

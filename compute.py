@@ -34,6 +34,12 @@ CLOSE_GAME_MARGIN = 10.0
 MIN_CLOSE_GAMES = 3
 MIN_WEEKS_FOR_SPLIT = 6
 
+# Margin thresholds for the per-team "how it ended" stats (ENH-025): a loss
+# decided by under HEARTBREAK_MARGIN is a heartbreak, a win decided by at
+# least BLOWOUT_MARGIN is a blowout.
+HEARTBREAK_MARGIN = 5.0
+BLOWOUT_MARGIN = 50.0
+
 # ESPN's mSettings.scoringSettings.scoringItems carry statIds, not names, so
 # the League Info page (ENH-005) needs a label map. These are the statIds
 # this league actually scores, each verified against the per-player applied
@@ -1138,18 +1144,34 @@ def scoring_profile(season):
 
     # Close games: decided by under 10 points. Counted from the matchups
     # rather than the per-team flags, since margin isn't in w["teams"].
+    # The per-team "how it ended" stats (ENH-025) ride along in the same
+    # pass over the decided games: points scored in losses, heartbreaks
+    # (losses by under 5), blowout wins (by 50+).
     for w in season["weeks"]:
         for g in w["games"]:
             if g["winner"] is None:
                 continue
             margin = abs(g["homeScore"] - g["awayScore"])
-            if margin >= CLOSE_GAME_MARGIN:
-                continue
-            for team_id in (g["home"], g["away"]):
-                p = out.setdefault(team_id, {})
-                p["closeGames"] = p.get("closeGames", 0) + 1
-                if g["winner"] == team_id:
-                    p["closeWins"] = p.get("closeWins", 0) + 1
+            if margin < CLOSE_GAME_MARGIN:
+                for team_id in (g["home"], g["away"]):
+                    p = out.setdefault(team_id, {})
+                    p["closeGames"] = p.get("closeGames", 0) + 1
+                    if g["winner"] == team_id:
+                        p["closeWins"] = p.get("closeWins", 0) + 1
+            win_id = g["winner"]
+            win_score = (g["homeScore"] if win_id == g["home"]
+                         else g["awayScore"])
+            lose_id = g["away"] if win_id == g["home"] else g["home"]
+            lose_score = (g["awayScore"] if win_id == g["home"]
+                          else g["homeScore"])
+            win_p = out.setdefault(win_id, {})
+            lose_p = out.setdefault(lose_id, {})
+            lose_p["pointsInLosses"] = round(
+                lose_p.get("pointsInLosses", 0.0) + lose_score, 1)
+            if margin < HEARTBREAK_MARGIN:
+                lose_p["heartbreaks"] = lose_p.get("heartbreaks", 0) + 1
+            if margin >= BLOWOUT_MARGIN:
+                win_p["blowoutWins"] = win_p.get("blowoutWins", 0) + 1
 
     for p in out.values():
         scores = p.pop("scores", [])
@@ -1158,6 +1180,9 @@ def scoring_profile(season):
         p["low"] = min(scores) if scores else 0.0
         p.setdefault("closeGames", 0)
         p.setdefault("closeWins", 0)
+        p.setdefault("pointsInLosses", 0.0)
+        p.setdefault("heartbreaks", 0)
+        p.setdefault("blowoutWins", 0)
         p["closeWinPct"] = (round(p["closeWins"] / p["closeGames"], 3)
                             if p["closeGames"] >= MIN_CLOSE_GAMES else None)
         # Second half vs first half average -- who got hot down the stretch.
@@ -1442,11 +1467,131 @@ def build_season_stats(season):
             "weeklyLasts": pr.get("weeklyLasts", 0),
             "luckyWins": pr.get("luckyWins", 0),
             "unluckyLosses": pr.get("unluckyLosses", 0),
+            "pointsInLosses": pr.get("pointsInLosses", 0.0),
+            "heartbreaks": pr.get("heartbreaks", 0),
+            "blowoutWins": pr.get("blowoutWins", 0),
         })
     return {"table": table,
             "records": season_records(season),
             "awards": season_awards(season, all_play, profile)}
 
+
+def build_team_season(season, team_id):
+    """One team's single-season story for its team page (ENH-025).
+
+    Returns None when team_id is not in this season, so a build can skip a
+    stale link. Otherwise a dict with:
+
+    - `weeks`: one entry per regular-season week the team played: its score,
+      that week's score-to-beat line, the dual-point split, and the matchup
+      result. Regular season only -- dual points don't count anywhere else,
+      and the schedule table the page renders from this must stay clean of
+      playoff games.
+    - `postseason`: the team's playoff/consolation games from the season's
+      `postseason` list, shown in their own table and never counted.
+    - `h2h`: the regular-season head-to-head against each other team: W-L-T,
+      points for/against, margin.
+
+    Pure function of the season dict; the same standing rules as the rest of
+    the module (weeks looked up by week number, decimals left untruncated).
+    """
+    standings = season.get("standings") or []
+    info = next((s for s in standings if s["teamId"] == team_id), None)
+    if info is None:
+        return None
+    owner = {s["teamId"]: s["owner"] for s in standings}
+    name = {s["teamId"]: s.get("name") for s in standings}
+
+    def result_of(game):
+        winner = game["winner"]
+        if winner == team_id:
+            return "W"
+        return "T" if winner is None else "L"
+
+    weeks = []
+    h2h = {}
+    for w in season.get("weeks") or []:
+        t = next((t for t in w["teams"] if t["teamId"] == team_id), None)
+        game = next((g for g in w["games"]
+                     if team_id in (g["home"], g["away"])), None)
+        if t is None or game is None:
+            continue
+        home = game["home"] == team_id
+        opponent = game["away"] if home else game["home"]
+        my_score = game["homeScore"] if home else game["awayScore"]
+        their_score = game["awayScore"] if home else game["homeScore"]
+        result = result_of(game)
+        weeks.append({
+            "week": w["week"],
+            "score": t["score"],
+            "scoreToBeat": w["scoreToBeat"],
+            "topHalf": t["topHalf"],
+            "h2hPoint": t["h2h"],
+            "weekPoints": t["weekPoints"],
+            "opponentId": opponent,
+            "opponent": owner.get(opponent),
+            "opponentScore": their_score,
+            "result": result,
+        })
+        rec = h2h.setdefault(opponent,
+                             {"wins": 0, "losses": 0, "ties": 0,
+                              "pf": 0.0, "pa": 0.0})
+        if result == "W":
+            rec["wins"] += 1
+        elif result == "T":
+            rec["ties"] += 1
+        else:
+            rec["losses"] += 1
+        rec["pf"] += my_score
+        rec["pa"] += their_score
+
+    rows = []
+    for other in sorted(h2h):
+        rec = h2h[other]
+        rows.append({
+            "teamId": other,
+            "name": name.get(other),
+            "owner": owner[other],
+            "wins": rec["wins"],
+            "losses": rec["losses"],
+            "ties": rec["ties"],
+            "pointsFor": round(rec["pf"], 1),
+            "pointsAgainst": round(rec["pa"], 1),
+            "margin": round(rec["pf"] - rec["pa"], 1),
+        })
+    rows.sort(key=lambda r: (-r["wins"], -r["margin"], r["owner"]))
+
+    postseason = []
+    for g in season.get("postseason") or []:
+        if team_id not in (g["home"], g["away"]):
+            continue
+        home = g["home"] == team_id
+        opponent = g["away"] if home else g["home"]
+        postseason.append({
+            "week": g["week"],
+            "tier": g.get("tier"),
+            "opponentId": opponent,
+            "opponent": owner.get(opponent),
+            "score": g["homeScore"] if home else g["awayScore"],
+            "opponentScore": g["awayScore"] if home else g["homeScore"],
+            "result": result_of(g),
+        })
+    postseason.sort(key=lambda g: (g["week"], g["opponentId"] or 0))
+
+    return {
+        "teamId": team_id,
+        "name": info.get("name"),
+        "owner": info["owner"],
+        "rank": info["rank"],
+        "points": info["points"],
+        "record": info.get("record"),
+        "pointsFor": info.get("pointsFor"),
+        "pointsAgainst": info.get("pointsAgainst"),
+        "finalRank": info.get("finalRank"),
+        "weeks": weeks,
+        "postseason": postseason,
+        "h2h": rows,
+    }
 
 
 # --------------------------------------------------------------------------
@@ -1606,6 +1751,21 @@ def main():
     standings = build_standings(raw, updated)
 
     out = Path("data") / f"standings-{season}.json"
+    # ENH-025: keep the old `updated` stamp when nothing else changed. The
+    # stamp is rendered on every page, so re-stamping a run whose data did
+    # not move would change docs/ every morning and the daily bot would
+    # commit a diff it manufactured. (Value-only compare: dict equality
+    # ignores key order, so a reordered-but-identical file still counts.)
+    if out.exists():
+        try:
+            old = json.loads(out.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            old = None
+        if isinstance(old, dict):
+            candidate = dict(standings)
+            candidate["updated"] = old.get("updated")
+            if candidate == old:
+                standings = candidate
     out.write_text(json.dumps(standings, indent=2) + "\n")
     print(f"Wrote {out} ({out.stat().st_size} bytes), "
           f"through week {standings['throughWeek']} of {standings['regularSeasonWeeks']}")

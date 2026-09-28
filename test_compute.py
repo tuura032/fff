@@ -12,7 +12,9 @@ import json
 import os
 import pathlib
 import shutil
+import sys
 import tempfile
+import time
 
 import build
 import compute
@@ -1927,3 +1929,232 @@ class TestKickerPageWiring(unittest.TestCase):
                     self.assertIn(key, sums, f"{year} {key} has no starters")
                     self.assertAlmostEqual(sums[key], team["score"], places=1,
                                            msg=f"{year} week {key}")
+
+
+# --------------------------------------------------------------------------
+# Team pages (ENH-025).
+# --------------------------------------------------------------------------
+
+class TestTeamSeason(unittest.TestCase):
+    """compute.build_team_season: the per-team page data (ENH-025).
+
+    Fixture math (full_season_weeks): week w, team i scores 100 + 10w + i,
+    so team 12 wins every week by 1 from the top of the league (2 pts each,
+    28 total) and team 1 loses every week by 1 from the bottom (0 total).
+    """
+
+    def setUp(self):
+        self.season = compute.build_standings(
+            make_raw(full_season_weeks()), UPDATED)
+
+    def test_unknown_team_returns_none(self):
+        self.assertIsNone(compute.build_team_season(self.season, 99))
+
+    def test_header_comes_from_the_standings_row(self):
+        d = compute.build_team_season(self.season, 12)
+        self.assertEqual(d["owner"], "First12 Last12")
+        self.assertEqual(d["rank"], 1)
+        self.assertEqual(d["points"], 28)
+
+    def test_every_week_has_score_line_and_split(self):
+        d = compute.build_team_season(self.season, 1)
+        self.assertEqual(len(d["weeks"]), 14)
+        first = d["weeks"][0]
+        self.assertEqual(first["score"], 110)
+        self.assertEqual(first["scoreToBeat"], 115)
+        self.assertEqual(first["result"], "L")
+        self.assertEqual(first["weekPoints"], 0)
+        self.assertEqual(first["opponentId"], 2)
+
+    def test_best_team_is_all_twos(self):
+        d = compute.build_team_season(self.season, 12)
+        self.assertTrue(all(w["weekPoints"] == 2 for w in d["weeks"]))
+        self.assertTrue(all(w["result"] == "W" for w in d["weeks"]))
+        self.assertTrue(all(w["topHalf"] for w in d["weeks"]))
+
+    def test_h2h_counts_and_margins(self):
+        d = compute.build_team_season(self.season, 12)
+        # Fixed pairings in this fixture: team 12 only ever plays team 11.
+        self.assertEqual(len(d["h2h"]), 1)
+        row = {r["teamId"]: r for r in d["h2h"]}
+        self.assertEqual(row[11]["wins"], 14)
+        self.assertEqual(row[11]["losses"], 0)
+        self.assertAlmostEqual(row[11]["pointsFor"], 2604.0)
+        self.assertAlmostEqual(row[11]["pointsAgainst"], 2590.0)
+        self.assertAlmostEqual(row[11]["margin"], 14.0)
+
+    def test_h2h_is_symmetric(self):
+        a = compute.build_team_season(self.season, 1)
+        b = compute.build_team_season(self.season, 2)
+        a_vs_b = {r["teamId"]: r for r in a["h2h"]}
+        b_vs_a = {r["teamId"]: r for r in b["h2h"]}
+        self.assertEqual(a_vs_b[2]["wins"], b_vs_a[1]["losses"])
+        self.assertAlmostEqual(a_vs_b[2]["pointsFor"],
+                               b_vs_a[1]["pointsAgainst"])
+        self.assertAlmostEqual(a_vs_b[2]["margin"], -b_vs_a[1]["margin"])
+
+    def test_postseason_games_are_split_out(self):
+        bracket = [
+            make_bracket_matchup(15, 1, 2, 130.0, 120.0),
+            make_bracket_matchup(16, 1, 12, 90.0, 100.0,
+                                 tier="LOSERS_BRACKET"),
+            make_bracket_matchup(15, 3, 4, 100.0, 90.0),  # other teams
+        ]
+        season = compute.build_standings(
+            make_raw(full_season_weeks(), bracket=bracket), UPDATED)
+        d = compute.build_team_season(season, 1)
+        self.assertEqual(len(d["weeks"]), 14)  # regular season only
+        self.assertEqual([g["week"] for g in d["postseason"]], [15, 16])
+        self.assertEqual(d["postseason"][0]["result"], "W")
+        self.assertEqual(d["postseason"][0]["tier"], "WINNERS_BRACKET")
+        self.assertEqual(d["postseason"][1]["result"], "L")
+        self.assertEqual(d["postseason"][1]["tier"], "LOSERS_BRACKET")
+        # Postseason meetings don't touch the regular-season h2h table.
+        row = {r["teamId"]: r for r in d["h2h"]}
+        self.assertEqual((row[2]["wins"], row[2]["losses"]), (0, 14))
+
+    def test_deterministic(self):
+        self.assertEqual(compute.build_team_season(self.season, 1),
+                         compute.build_team_season(self.season, 1))
+
+
+class TestTeamPageWiring(unittest.TestCase):
+    """Every team of every season on disk builds a page's worth of data."""
+
+    def test_every_team_of_every_season_builds(self):
+        for path in sorted(pathlib.Path("data").glob("standings-*.json")):
+            year = int(path.stem.split("-")[1])
+            season = json.loads(path.read_text(encoding="utf-8"))
+            for s in season["standings"]:
+                d = compute.build_team_season(season, s["teamId"])
+                self.assertIsNotNone(d, (year, s["teamId"]))
+                self.assertEqual(len(d["weeks"]), season["throughWeek"],
+                                 (year, s["teamId"]))
+                # The chips under the chart must agree with the standings
+                # table: the same dual points, just week by week.
+                self.assertEqual(sum(w["weekPoints"] for w in d["weeks"]),
+                                 s["points"], (year, s["teamId"]))
+                # One h2h row per opponent met so far (mid-season teams
+                # have met fewer than 11), covering exactly every week.
+                opponents = {w["opponentId"] for w in d["weeks"]}
+                self.assertEqual(len(d["h2h"]), len(opponents),
+                                 (year, s["teamId"]))
+                self.assertEqual(
+                    sum(r["wins"] + r["losses"] + r["ties"]
+                        for r in d["h2h"]),
+                    len(d["weeks"]), (year, s["teamId"]))
+
+
+
+
+class TestUpdatedStamp(unittest.TestCase):
+    """compute.main keeps the old `updated` stamp when nothing else changed.
+
+    The stamp is rendered on every page (ENH-025), so re-stamping a run
+    whose data didn't move would change docs/ every morning and the daily
+    bot would commit a diff it manufactured.
+    """
+
+    def setUp(self):
+        self.old_cwd = os.getcwd()
+        self.tmp = tempfile.mkdtemp()
+        self.data = pathlib.Path(self.tmp) / "data"
+        self.data.mkdir()
+        (self.data / "raw-2025.json").write_text(
+            json.dumps(make_raw(full_season_weeks(), season=2025)),
+            encoding="utf-8")
+
+    def tearDown(self):
+        os.chdir(self.old_cwd)
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _run(self):
+        os.chdir(self.tmp)
+        old_argv = sys.argv
+        sys.argv = ["compute.py", "--season", "2025"]
+        try:
+            compute.main()
+        finally:
+            sys.argv = old_argv
+        return json.loads((self.data / "standings-2025.json")
+                          .read_text(encoding="utf-8"))
+
+    def test_unchanged_data_keeps_the_old_stamp(self):
+        first = self._run()
+        stamp = first["updated"]
+        time.sleep(1.1)  # the second run's clock must read a new second
+        second = self._run()
+        self.assertEqual(second["updated"], stamp)
+
+    def test_changed_data_gets_a_new_stamp(self):
+        first = self._run()
+        raw = json.loads((self.data / "raw-2025.json")
+                         .read_text(encoding="utf-8"))
+        raw["mMatchupScore"]["schedule"][0]["home"]["totalPoints"] += 5
+        (self.data / "raw-2025.json").write_text(json.dumps(raw),
+                                                 encoding="utf-8")
+        time.sleep(1.1)
+        second = self._run()
+        self.assertNotEqual(second["updated"], first["updated"])
+
+
+class TestMarginStats(unittest.TestCase):
+    """The per-team "how it ended" stats: loss points, heartbreaks, blowouts."""
+
+    def _profile(self, scores):
+        season = compute.build_standings(make_raw({1: week_games(scores)}),
+                                         UPDATED)
+        return season, compute.scoring_profile(season)
+
+    def test_points_in_losses_heartbreaks_and_blowouts(self):
+        # (1,2) 100-96   margin 4  -> heartbreak for 2
+        # (3,4) 100-95   margin 5  -> close loss for 4, not a heartbreak
+        # (5,6) 150-100  margin 50 -> blowout win for 5
+        # (7,8) 151-100  margin 51 -> blowout win for 7
+        # (9,10) 100-100 tie      -> nothing
+        # (11,12) 200-149 margin 51 -> blowout win for 11
+        scores = [100.0, 96.0, 100.0, 95.0, 150.0, 100.0,
+                  151.0, 100.0, 100.0, 100.0, 200.0, 149.0]
+        season, prof = self._profile(scores)
+        self.assertEqual(prof[2]["pointsInLosses"], 96.0)
+        self.assertEqual(prof[2]["heartbreaks"], 1)
+        self.assertEqual(prof[4]["pointsInLosses"], 95.0)
+        self.assertEqual(prof[4]["heartbreaks"], 0)  # margin 5 is not under 5
+        self.assertEqual(prof[6]["pointsInLosses"], 100.0)
+        self.assertEqual(prof[6]["blowoutWins"], 0)
+        self.assertEqual(prof[5]["blowoutWins"], 1)
+        self.assertEqual(prof[7]["blowoutWins"], 1)
+        self.assertEqual(prof[11]["blowoutWins"], 1)
+        self.assertEqual(prof[12]["pointsInLosses"], 149.0)
+        self.assertEqual(prof[12]["heartbreaks"], 0)
+        # The tie produces no loss, heartbreak, or blowout for either team.
+        self.assertEqual(prof[9]["pointsInLosses"], 0.0)
+        self.assertEqual(prof[10]["pointsInLosses"], 0.0)
+        self.assertEqual(prof[9]["heartbreaks"], 0)
+        self.assertEqual(prof[9]["blowoutWins"], 0)
+        # Close-game accounting is untouched by the new stats: only the
+        # two sub-10-margin games count, and only the winners of those.
+        self.assertEqual(prof[1]["closeGames"], 1)
+        self.assertEqual(prof[1]["closeWins"], 1)
+        self.assertEqual(prof[4]["closeGames"], 1)
+        self.assertEqual(prof[4]["closeWins"], 0)
+        self.assertEqual(prof[6]["closeGames"], 0)
+        self.assertEqual(prof[11]["closeGames"], 0)
+        # The stats reach the Stats page table.
+        table = {t["teamId"]: t
+                 for t in compute.build_season_stats(season)["table"]}
+        self.assertEqual(table[2]["heartbreaks"], 1)
+        self.assertEqual(table[2]["pointsInLosses"], 96.0)
+        self.assertEqual(table[5]["blowoutWins"], 1)
+        self.assertEqual(table[3]["heartbreaks"], 0)
+        self.assertEqual(table[3]["blowoutWins"], 0)
+
+    def test_blowout_threshold_is_inclusive(self):
+        # Exactly 50 is a blowout; the losing side of a 50-point game is
+        # not a heartbreak.
+        scores = [150.0, 100.0] + [100.0 + i for i in range(10)]
+        _season, prof = self._profile(scores)
+        self.assertEqual(prof[1]["blowoutWins"], 1)
+        self.assertEqual(prof[2]["blowoutWins"], 0)
+        self.assertEqual(prof[2]["heartbreaks"], 0)
+
