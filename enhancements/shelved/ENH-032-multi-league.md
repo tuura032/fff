@@ -1,6 +1,6 @@
 # ENH-032 — Multi-league support
 
-Status: open · Category: multi-league
+Status: shelved 2026-09-29 · Category: multi-league
 
 **Sequence this last.** It's real work, but lower payoff than the content
 and UX items, and everything unblocking it is already done: the playoff
@@ -19,3 +19,7 @@ one league. Most of the values it needs are already in the fetched JSON:
 
 (This was the unnumbered "Open — multi-league" section of the old
 `ENHANCEMENTS.md`, numbered when the backlog was split into files.)
+
+## Why shelved
+
+Parked. There's one league today, and the item itself says to do it last. Nothing is lost by shelving it: the notes above still hold. Revive if a second league actually wants the site.

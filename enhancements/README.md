@@ -6,6 +6,10 @@ was given, not the whole history.
 - **`enhancements/ENH-NNN-<slug>.md`**: open items. Pick one by ID.
 - **`enhancements/done/`**: shipped items, kept for reference. Don't read
   this folder unless a task points you there.
+- **`enhancements/shelved/`**: items set aside because other work covered
+  them or they can't work here. Each one ends with a "Why shelved" note.
+  To revive one, `git mv` it back and set `Status: open`. Don't read this
+  folder unless a task points you there.
 - **`NOT-BUILDING.md`**: decisions not to re-litigate. It's short, so read it
   before proposing anything architectural.
 
@@ -22,7 +26,7 @@ was given, not the whole history.
 ## Adding an item
 
 Create `ENH-NNN-<short-slug>.md` with the next free ID. It's one higher than
-the highest ID in either folder, so check both.
+the highest ID in any of the three folders, so check them all.
 
 ```
 # ENH-NNN — Short title

@@ -21,7 +21,7 @@ math, or `README.md` for the full picture.
    into `dev`, never rebase.
 2. Work the item you were given. If none was named, take the open bug in
    `BUGS.md` first, then the lowest-numbered file in `enhancements/`. Read
-   only that item's file, not the whole folder, and never `enhancements/done/`
+   only that item's file, not the whole folder, and never `enhancements/done/` or `enhancements/shelved/`
    unless the task points there. Do exactly that one thing — no drive-by refactors, no extra scripts, no "while I was
    here."
 3. If anything is ambiguous, stop and ask rather than guessing.
