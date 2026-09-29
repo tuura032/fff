@@ -209,6 +209,18 @@
     return map;
   }
 
+  /** Map teamId -> logo URL (ESPN CDN), from the payload's mTeam block.
+   *  Empty/missing logos are skipped so the UI can fall back to name-only. */
+  function teamLogos(data) {
+    var map = {};
+    for (var i = 0; i < ((data && data.teams) || []).length; i++) {
+      var t = data.teams[i];
+      var id = toNum(t && t.id);
+      if (id !== null && t.logo) map[id] = t.logo;
+    }
+    return map;
+  }
+
   /**
    * "If the week ended now": the season's dual points (from
    * live-data.json) plus this week's projected dual points, re-ranked,
@@ -280,6 +292,7 @@
     scoreToBeat: scoreToBeat,
     weekDualPoints: weekDualPoints,
     teamNames: teamNames,
+    teamLogos: teamLogos,
     seasonIfEndedNow: seasonIfEndedNow,
     catchUp: catchUp,
     allFinal: allFinal

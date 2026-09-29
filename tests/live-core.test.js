@@ -230,6 +230,19 @@ test('teamNames: teamId -> name only, no owner names', () => {
   for (const n of Object.values(names)) assert.ok(!/^\s*M/.test(n) || n.startsWith('Team'));
 });
 
+test('teamLogos: teamId -> logo URL, empty and missing logos skipped', () => {
+  const data = payload({ teams: [
+    { id: 1, name: 'A', logo: 'https://a.espncdn.com/1.svg' },
+    { id: 2, name: 'B', logo: '' },      // unset -> UI falls back to name only
+    { id: 3, name: 'C' }                  // field absent entirely
+  ] });
+  const logos = LIVE.teamLogos(data);
+  assert.strictEqual(logos[1], 'https://a.espncdn.com/1.svg');
+  assert.strictEqual(Object.keys(logos).length, 1);
+  assert.deepStrictEqual(LIVE.teamLogos(twelveTeamWeek3(DESC_12, DESC_12)), {});
+  assert.deepStrictEqual(LIVE.teamLogos(null), {});
+});
+
 test('allFinal: false while any game is undecided, true once all decided', () => {
   const data = twelveTeamWeek3(DESC_12, DESC_12);
   // twelveTeamWeek3 sets winner UNDECIDED only on exact ties; no ties here

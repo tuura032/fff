@@ -12,19 +12,20 @@
          only hides the content visually, since the HTML ships either way. -->
     <meta name="robots" content="noindex, nofollow">
 
-    <!-- Dark mode, no-flash: resolve the theme (stored override, else
-         system preference) and set it explicitly on <html> before first
-         paint. Tailwind's dark: variant here (src/tailwind.css) targets
+    <!-- Dark mode, no-flash: resolve the theme (stored override, else dark
+         by default) and set it explicitly on <html> before first paint.
+         Tailwind's dark: variant here (src/tailwind.css) targets
          [data-theme="dark"] directly rather than a prefers-color-scheme
          media query, so this is the one place theme resolution happens —
-         CSS never has to guess. -->
+         CSS never has to guess. Dark is the default (2026-09-28): the
+         league reads the site on game night, and the toggle in the header
+         still lets anyone pin light. -->
     <script>
       (function () {
-        var theme = 'light';
+        var theme = 'dark';
         try {
           var stored = localStorage.getItem('theme');
-          theme = (stored === 'dark' || stored === 'light') ? stored
-            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          if (stored === 'dark' || stored === 'light') theme = stored;
         } catch (e) {}
         document.documentElement.setAttribute('data-theme', theme);
       })();

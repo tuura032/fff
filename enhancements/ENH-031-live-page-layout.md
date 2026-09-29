@@ -1,6 +1,34 @@
 # ENH-031 — Live page layout: borrow the prototype's design, keep our logic
 
-Status: open · Category: polish & UX
+Status: open (partially shipped, see Progress) · Category: polish & UX
+
+## Progress (2026-09-28, owner-directed, unscoped commit on dev)
+
+The owner reviewed the page and directed a subset of this item plus two
+changes the spec doesn't cover. Shipped:
+
+- **Team logos** (spec item 2, partially): ESPN `mTeam.logo` on the
+  scoreboard cards and all three tables via `LIVE.teamLogos()` (new, tested).
+  Still missing: the initials-in-a-rounded-square fallback on logo load
+  failure.
+- **Accent colors** (spec item 4, partially): the live score-to-beat is
+  amber and the projected one violet. The live/projected *table columns*
+  are not colored yet.
+- **Owner overrides to "Keep as is":** the "Updated Ns ago" chip and the
+  Refresh button are gone — replaced by a 60 s SVG progress ring in the
+  page header's right side (the ring's completion fires the fetch; it
+  freezes full when everything is final). The subtitle line under the H1
+  is also removed.
+- **New owner request:** the last good ESPN payload + timestamp persist in
+  `localStorage` (per season), so a reload renders at once and the ring
+  resumes from the stored time instead of restarting.
+- **Site-wide:** dark mode is now the default when no stored preference
+  exists (toggle still pins light/dark per visitor).
+
+Remaining to finish this item: stacked scoreboard cards (3/2/1 grid, no
+name truncation at 1440), per-row win-probability bars, prototype-style
+section panels, big 0/1/2 dual numbers, logo initials fallback, colored
+table columns.
 
 **Why:** the owner finds the thinkingcap prototype's live page
 (`D:\Workspace\ff-scoring-app-thinkingcap3.8-27b`, `public/live.html`,
