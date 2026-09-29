@@ -84,126 +84,6 @@ status.
   2021 on, so the ID-based picker links can land on a different owner's
   page when switching seasons. Needs a cross-season owner→teamId map passed
   into the template.
-- **ENH-029** — Live page (owner idea, 2026-09-28). One page, `live.html`,
-  that shows this week while games are on. It fetches ESPN directly from the
-  browser and does this week's math in the browser. It's the one place the
-  site is live. Everything else stays daily, static and computed in Python.
-  Proven by a prototype in `D:\Workspace\ff-scoring-app-thinkingcap3.8-27b`
-  (`public/live.html`, `public/js/live-core.js`, `public/js/live.js`,
-  `test/live.test.js`). Borrow its structure, but **not** its top-half rule
-  (see "Rules" below).
-
-  **Why it's allowed:** this reverses "live in-game scoring" in "Explicitly
-  not building" for this one page only. Update that section to say so. ESPN
-  answers browser requests from any origin (`Access-Control-Allow-Origin`
-  echoes the caller; verified 2026-09-28 for `tuura032.github.io` and
-  `localhost`). That's unofficial and could change, so the page must fail
-  gracefully (see "Failure").
-
-  **Three layers:**
-  1. **Live, from ESPN, in the browser.** `GET
-     https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/<season>/segments/0/leagues/877873?view=mMatchupScore&view=mScoreboard&view=mTeam&view=mSettings`.
-     Per side, use `totalPointsLive` (fall back to `totalPoints`),
-     `totalProjectedPointsLive` (fall back to live) and `winProbability`.
-     Pick the week with `status.currentMatchupPeriod`, and group the schedule
-     by `matchupPeriodId`, never by index (standing rule).
-  2. **Your data, as a static file.** `build.py` writes
-     `docs/live-data.json` for the **newest season only**: `season`,
-     `throughWeek`, `regularSeasonWeeks`, and per team `teamId`, team `name`,
-     season dual `points` and `rank`. It comes straight from
-     `standings-<season>.json`. **No owner names** (see "Names"), and no
-     `updated` or other timestamp, so it stays deterministic and the daily
-     bot doesn't churn it. The page fetches it once on load.
-  3. **Model layer in JS:** `static/js/live-core.js`. Pure functions, no DOM,
-     loadable in the browser and in Node for tests. Merge layers 1 and 2 by
-     `teamId`, and calculate this week's numbers. `static/js/live.js` does the
-     DOM work and polling.
-
-  **Rules (must match `compute.py`, not the prototype):**
-  - **Score to beat:** port `compute.score_to_beat` exactly. Sort ascending
-    and take index `n // 2 - 1`, which is the highest score that *missed* the
-    top half (the 7th-best of 12). A team gets the top-half point only if its
-    score is **strictly greater** than that. So a tie at the boundary gives
-    **neither** team the point, and an 11-team field awards 6 points
-    (SPEC.md §1, `compute.py` `build_week`).
-    - The prototype's `topHalfLine` uses the 6th-best score with ≥, which
-      differs on exactly these edge cases. Don't copy it.
-  - **H2H point:** the higher score leads. An exact tie gives neither team
-    the point.
-  - Show both **live** and **projected** versions of the score to beat and
-    each team's 0/1/2 for the week.
-  - **Regular season only:** if the current week is greater than
-    `regularSeasonWeeks`, show the scoreboard and hide everything about dual
-    points. Playoff weeks don't count (standing rule).
-  - Keep decimals as ESPN reports them. Round to one decimal **for display
-    only**, and use the same one-decimal display in every spot. The prototype
-    leaked float noise like `+19.700000000000003`.
-
-  **What the page shows, in order:**
-  1. **Scoreboard:** the six matchups with live score, projected score, and
-     win probability as a percentage (not `0.99`).
-  2. **Score to beat:** live and projected, with each team shown as above or
-     below it and by how much. This is the stat ESPN doesn't show, so give it
-     the most prominent spot.
-  3. **This week's dual points:** each team's live and projected 0/1/2, with
-     plain chips like `W` and `TOP`. The prototype's `1W + 1½` read as "one
-     and a half."
-  4. **"If the week ended now":** season dual points from `live-data.json`
-     plus this week's projected 0/1/2, re-ranked, with movement against
-     `rank`. Only show it when `throughWeek == currentMatchupPeriod - 1`.
-    - Otherwise the daily bot hasn't caught up with last week yet, and adding
-      this week would skip one. In that case, hide the table and show a note.
-
-  **Names:** team names only, on this page. ESPN's `mTeam` response includes
-  members' real names, which will be visible in dev tools no matter what.
-  That's accepted. But don't *display* owner names anywhere on this page.
-
-  **Refreshing:**
-  - Fetch on load, then every 60 s while the tab is visible
-    (`visibilitychange`). Stop polling when every matchup this week is final.
-  - Show "Updated Ns ago." A manual Refresh button is fine, but disable it for
-    a few seconds after each click, so nobody hammers ESPN.
-
-  **Failure:** if ESPN fails or returns an unexpected shape, show a clear
-  message and keep the last good data on screen. If there's no data at all
-  (outside the season, or ESPN is down), show a friendly empty state that
-  links to Home. Don't throw uncaught errors.
-
-  **Site integration:**
-  - `templates/live.html` extends `layout.html`, so it gets the passphrase
-    gate, nav, dark mode and the swatch colors.
-  - Style it with the site's Tailwind classes, not the prototype's CSS. New
-    utility classes need an `app.css` rebuild (README "Frontend").
-  - Build it for the **newest season only** (the site root), not the archive
-    seasons.
-  - Add "Live" to both the desktop and mobile navs.
-  - On the live page, season-picker options must point at each season's
-    `index.html` (`live.html` doesn't exist in the archives). Check this the
-    way BUG-010 was checked: resolve every option with
-    `new URL(value, location.href)` and expect a 200 response.
-  - Chart.js isn't needed. If you add a chart anyway, it's 2.7.1 syntax (see
-    ENH-025).
-
-  **Tests:**
-  - `node --test tests/live-core.test.js` (Node's built-in runner, no npm
-    packages, not in CI). Cover the score to beat, the ties at the boundary
-    and in H2H, an odd field size, byes, the merge, and the "ended now"
-    re-rank.
-  - **Parity test (the important one):** for every regular-season week of
-    2025, feed `data/raw-2025.json` to `live-core.js` in final-score mode,
-    and assert that each team's h2h and topHalf points and each week's score
-    to beat match `data/standings-2025.json` `weeks[]`. That's what keeps the
-    JS and Python from drifting.
-  - `python -m unittest test_compute -v` still passes (add a test for the
-    `live-data.json` builder if it's a function in `compute.py`).
-
-  **Done when:** the tests above pass, and a second `build.py` run changes
-  nothing in `docs/`. Playwright on `live.html`, in light/dark and
-  desktop/mobile, shows:
-  - no console errors;
-  - no horizontal page scroll at 390px;
-  - a working empty/error state when the ESPN host is blocked (use
-    `page.route` to abort it).
 
 ## Open — polish & UX
 
@@ -258,6 +138,24 @@ daily, static and computed in Python.
 
 ## Done
 
+- **ENH-029** — Live page (this week, live in the browser) — done
+  2026-09-28. `live.html`, emitted for the newest season only: it fetches the
+  current week's ESPN scoreboard straight from the browser (polls every 60 s
+  while the tab is visible), merges it with a deterministic `docs/live-data.json`
+  snapshot that `build.py` writes (season, throughWeek, regularSeasonWeeks and
+  per-team teamId/name/points/rank — no owner names, no timestamp), and computes
+  score-to-beat, dual points and "if the week ended now" in the browser. The
+  rules live in `static/js/live-core.js` (pure, UMD — browser and Node) and are
+  pinned to `compute.py` by a Node parity test over every 2025 week
+  (`tests/live-core.test.js`); `live.js` does the DOM and polling. Bye weeks
+  render the byed teams in a "Bye this week:" line, and byed teams stay in the
+  score-to-beat and dual-points tables. Fails gracefully when ESPN is
+  unreachable (last daily data + a note). `build.py` skips `live.js` /
+  `live-core.js` when copying static assets into older-season archives, since
+  only the root season has a live page. Verified: unit + Node tests pass; a
+  second build changes nothing in `docs/`; Playwright checks (light/dark ×
+  desktop/mobile, ESPN blocked, synthetic bye week) pass with no console errors
+  and no horizontal page scroll at 390px.
 - **ENH-028** — Game-night refresh cadence, no manual button — done
   2026-09-28. The "Run an update now" footer link is gone (manual dispatch
   stays in the Actions UI); the bot now runs hourly on game nights (Sun

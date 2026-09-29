@@ -110,6 +110,17 @@ def ordinal(n):
     return f"{n}{suffix}"
 
 
+def _archive_static_ignore(base, names):
+    """shutil.copytree ignore callback for the archive static/ copies.
+
+    The live page's JS only serves the root season's live.html, so drop it
+    from the older-season copies rather than ship dead weight.
+    """
+    if os.path.basename(os.path.normpath(base)) == "js":
+        return [n for n in names if n in ("live.js", "live-core.js")]
+    return []
+
+
 def main():
     parser = argparse.ArgumentParser(description="Render the FFF static site to docs/.")
     parser.add_argument("--season", type=int, default=None,
@@ -281,6 +292,9 @@ def main():
             "money_seasons": money_seasons,
             "entryFee": data.get("entryFee"),
             "phrase_hash": gate_hash,
+            # The ESPN league id, for the Live page's in-browser fetch URL
+            # (ENH-029). Same value the URL in fetch.py hardcodes.
+            "league": data.get("league"),
             # How many teams make the playoffs, per the league's own ESPN
             # settings. home.html used to assume half the field, which is
             # right for this league only by coincidence.
@@ -364,15 +378,34 @@ def main():
             team_page = f"team/{row['teamId']}.html"
             emit("team.html", out_dir / team_page, team_page,
                  team_data=team_data)
+
+        # Live page (ENH-029), newest season only -- the archives have no
+        # live data to fetch, so live.html exists only at the site root,
+        # and layout.html hides the nav link off that season.
+        if season == root_season:
+            live_data = compute.build_live_data(data)
+            emit("live.html", out_dir / "live.html", "live.html",
+                 live_data=live_data)
+            # The page's static half: a pure projection of the standings,
+            # so it changes only when the standings do and the bot's
+            # "did docs/ change?" gate stays quiet on live-score churn.
+            (out_dir / "live-data.json").write_text(
+                json.dumps(live_data, indent=2) + "\n", encoding="utf-8")
+            print(f"Wrote {out_dir / 'live-data.json'}")
+
         # The templates reference static/ relatively, so every output
         # directory needs its own copy. rmtree first: dirs_exist_ok=True
         # merges instead of mirroring, so a file removed from static/
         # (e.g. dashboard.css, retired for the Tailwind rewrite) would
-        # otherwise linger as a stale orphan in docs/ forever.
+        # otherwise linger as a stale orphan in docs/ forever. The
+        # archives also drop the live page's JS: live.html is only emitted
+        # for the root season, so those files would be dead weight.
         static_out = out_dir / "static"
         if static_out.exists():
             shutil.rmtree(static_out)
-        shutil.copytree("static", static_out)
+        shutil.copytree("static", static_out,
+                        ignore=None if season == root_season
+                        else _archive_static_ignore)
         # Same treatment for the fonts: the @font-face rules reference them
         # by stable URL, so a changed woff2 would be masked by the browser's
         # cached copy. Rewrite only the copied CSS -- the source

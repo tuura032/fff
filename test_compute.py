@@ -2158,3 +2158,44 @@ class TestMarginStats(unittest.TestCase):
         self.assertEqual(prof[2]["blowoutWins"], 0)
         self.assertEqual(prof[2]["heartbreaks"], 0)
 
+
+class TestLiveData(unittest.TestCase):
+    """The Live page's static season snapshot (ENH-029).
+
+    docs/live-data.json feeds the browser's "if the week ended now" table.
+    It must be a pure projection of the standings: team names only (no
+    owner names), no `updated` stamp, so the daily bot only churns it when
+    the standings actually change.
+    """
+
+    def setUp(self):
+        self.standings = compute.build_standings(
+            make_raw(full_season_weeks()), UPDATED)
+
+    def test_shape(self):
+        d = compute.build_live_data(self.standings)
+        self.assertEqual(sorted(d), ["regularSeasonWeeks", "season",
+                                     "teams", "throughWeek"])
+        self.assertEqual(len(d["teams"]), 12)
+        for t in d["teams"]:
+            self.assertEqual(sorted(t), ["name", "points", "rank", "teamId"])
+
+    def test_values_match_standings(self):
+        d = compute.build_live_data(self.standings)
+        by_id = {t["teamId"]: t for t in d["teams"]}
+        self.assertEqual(d["season"], self.standings["season"])
+        self.assertEqual(d["throughWeek"], self.standings["throughWeek"])
+        self.assertEqual(d["regularSeasonWeeks"],
+                         self.standings["regularSeasonWeeks"])
+        for s in self.standings["standings"]:
+            t = by_id[s["teamId"]]
+            self.assertEqual(t["points"], s["points"])
+            self.assertEqual(t["rank"], s["rank"])
+            self.assertEqual(t["name"], s["name"])
+
+    def test_no_owner_names_or_timestamps(self):
+        text = json.dumps(compute.build_live_data(self.standings))
+        self.assertNotIn("owner", text)
+        self.assertNotIn("updated", text)
+
+

@@ -552,6 +552,29 @@ def build_standings(raw, updated):
     }
 
 
+def build_live_data(standings):
+    """The static season snapshot for the Live page (ENH-029).
+
+    build.py writes this to docs/live-data.json for the newest season only.
+    The browser page merges it with the in-game scores it fetches from ESPN
+    to show "if the week ended now". Two deliberate absences:
+
+    - No owner names. The live ESPN response carries them in dev tools
+      regardless, but this page displays team names only.
+    - No `updated` stamp. Everything here is a pure function of
+      standings-<season>.json, so the file only changes when the standings
+      do -- a timestamp would churn docs/ every bot run.
+    """
+    return {
+        "season": standings["season"],
+        "throughWeek": standings["throughWeek"],
+        "regularSeasonWeeks": standings["regularSeasonWeeks"],
+        "teams": [{"teamId": s["teamId"], "name": s["name"],
+                   "points": s["points"], "rank": s["rank"]}
+                  for s in standings["standings"]],
+    }
+
+
 def postseason_games(schedule, week_count):
     """Decided games after the regular season, across every bracket tier.
 

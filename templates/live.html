@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Live — Fantasy Football Fantasy
+{% endblock %}
+
+{% block main %}
+
+<script>
+  /* Build-time config for the Live page (ENH-029). The league id and season
+     feed the ESPN fetch the browser makes directly; regularSeasonWeeks is
+     where the dual-point sections end (playoff weeks score no dual points).
+     The static half of the page is live-data.json, fetched from this page's
+     own directory — team names only, no owners, no timestamps. */
+  window.LIVE_CONFIG = {
+    league: "{{ league }}",
+    season: {{ season }},
+    regularSeasonWeeks: {{ regularSeasonWeeks }}
+  };
+</script>
+
+<header class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+  <div>
+    <h1 class="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+      Live &middot; Week <span id="live-week">&ndash;</span>
+    </h1>
+    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      Fetched straight from ESPN in your browser &middot; refreshes every 60&nbsp;s while this tab is visible
+    </p>
+  </div>
+  <div class="flex items-center gap-2">
+    <span id="live-status"
+          class="inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
+      <span id="live-status-dot" class="h-2 w-2 rounded-full bg-slate-400"></span>
+      <span id="live-status-text">Connecting&hellip;</span>
+    </span>
+    <button id="live-refresh" type="button"
+            class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+      &#8635; Refresh
+    </button>
+  </div>
+</header>
+
+<!-- Failed refresh: keep the last good data on screen, say what happened. -->
+<div id="live-error" role="alert"
+     class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-rose-300 bg-rose-50 px-4 py-2.5 text-sm text-rose-800 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-300">
+  <span>&#9888;&nbsp; Live update failed &mdash; <span id="live-error-text"></span>. Showing the last good data.</span>
+  <button id="live-retry" type="button"
+          class="rounded-md border border-rose-300 px-2.5 py-1 text-xs font-semibold hover:bg-rose-100 dark:border-rose-500/50 dark:hover:bg-rose-500/20">
+    Retry
+  </button>
+</div>
+
+<!-- No data at all: outside the season, or ESPN unreachable. -->
+<section id="live-empty" class="mt-10">
+  <div class="mx-auto max-w-md rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <p class="text-3xl" aria-hidden="true">&#128225;</p>
+    <h2 class="font-display mt-3 text-lg font-semibold tracking-tight text-slate-900 dark:text-white" id="live-empty-title">
+      No live games right now
+    </h2>
+    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400" id="live-empty-body">
+      This page shows the current week while games are on. Check back on a
+      game day, or take a look at the standings in the meantime.
+    </p>
+    <a href="index.html"
+       class="mt-5 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500">
+      Go to the standings &rarr;
+    </a>
+  </div>
+</section>
+<div id="live-content" class="hidden">
+
+  <!-- 1. Scoreboard: the six matchups, live + projected + win probability. -->
+  <section class="mt-6">
+    <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Scoreboard</h2>
+    <div id="live-scoreboard" class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2"></div>
+    <p id="live-byes" class="mt-2 text-xs text-slate-400 dark:text-slate-500"></p>
+  </section>
+
+  <!-- 2. Score to beat: the stat ESPN doesn't show, so it gets the hero
+       spot. The line splits the league into a top half and a bottom half;
+       beat it (strictly) for the second point. -->
+  <section id="live-stb-section" class="mt-8">
+    <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Score to beat</h2>
+    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      The highest score that <em>missed</em> the top half. Score strictly
+      above the line for the top-half point &mdash; a tie at the line gives
+      neither team the point.
+    </p>
+    <div class="mt-3 grid grid-cols-2 gap-3">
+      <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 text-center dark:border-blue-500/30 dark:bg-blue-500/10">
+        <p class="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400">Live line</p>
+        <p class="mt-1 font-display text-3xl font-bold tabular-nums text-slate-900 sm:text-4xl dark:text-white" id="live-stb">
+          &ndash;
+        </p>
+        <p class="mt-1 text-[11px] text-slate-500 dark:text-slate-400">beat it on live scores</p>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-4 text-center dark:border-slate-800 dark:bg-slate-900">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Projected line</p>
+        <p class="mt-1 font-display text-3xl font-bold tabular-nums text-slate-900 sm:text-4xl dark:text-white" id="live-stb-proj">
+          &ndash;
+        </p>
+        <p class="mt-1 text-[11px] text-slate-500 dark:text-slate-400">beat it on projected scores</p>
+      </div>
+    </div>
+    <div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 shadow-sm dark:border-slate-800">
+      <table class="w-full min-w-[30rem] bg-white text-sm dark:bg-slate-900">
+        <thead>
+          <tr class="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
+            <th class="px-3 py-2">Team</th>
+            <th class="px-3 py-2 text-right">Live</th>
+            <th class="px-3 py-2 text-right">vs line</th>
+            <th class="px-3 py-2 text-right">Proj</th>
+            <th class="px-3 py-2 text-right">vs line</th>
+          </tr>
+        </thead>
+        <tbody id="live-stb-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. This week's dual points: 0/1/2 per team, live and projected. -->
+  <section id="live-dual-section" class="mt-8">
+    <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">This week&rsquo;s dual points</h2>
+    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      <span class="font-semibold text-slate-700 dark:text-slate-200">W</span> = won the
+      matchup, <span class="font-semibold text-slate-700 dark:text-slate-200">TOP</span> =
+      beat the line. Max 2, regular season only.
+    </p>
+    <div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 shadow-sm dark:border-slate-800">
+      <table class="w-full min-w-[30rem] bg-white text-sm dark:bg-slate-900">
+        <thead>
+          <tr class="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
+            <th class="px-3 py-2">Team</th>
+            <th class="px-3 py-2 text-right">Live</th>
+            <th class="px-3 py-2 text-center">Live dual</th>
+            <th class="px-3 py-2 text-right">Proj</th>
+            <th class="px-3 py-2 text-center">Proj dual</th>
+          </tr>
+        </thead>
+        <tbody id="live-dual-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <!-- 4. If the week ended now: committed season points + this week's
+       projected points, re-ranked. Shown only when the committed standings
+       cover through last week (the daily bot has caught up). -->
+  <section id="live-ended-section" class="mt-8">
+    <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">If the week ended now</h2>
+    <p id="live-ended-note" class="mt-2 hidden rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300"></p>
+    <div id="live-ended-table" class="mt-3 overflow-x-auto rounded-lg border border-slate-200 shadow-sm dark:border-slate-800">
+      <table class="w-full min-w-[30rem] bg-white text-sm dark:bg-slate-900">
+        <thead>
+          <tr class="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
+            <th class="px-3 py-2">#</th>
+            <th class="px-3 py-2">Team</th>
+            <th class="px-3 py-2 text-right" title="Season dual points through last committed week">Season</th>
+            <th class="px-3 py-2 text-right" title="Projected dual points for this week">This wk</th>
+            <th class="px-3 py-2 text-right">Total</th>
+            <th class="px-3 py-2 text-right">Move</th>
+          </tr>
+        </thead>
+        <tbody id="live-ended-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Playoff week: the scoreboard stays, the dual-point sections go away.
+       Dual points stop after the regular season (SPEC §1); playoff weeks
+       don't count. -->
+  <div id="live-playoff-note"
+       class="mt-8 hidden rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+    Playoff week &mdash; dual points stop after week
+    {{ regularSeasonWeeks }} of the regular season, so the score-to-beat
+    and dual-point tables are off for now. The scoreboard still works.
+  </div>
+
+</div>
+<!-- /#live-content -->
+
+<script src="static/js/live-core.js"></script>
+<script src="static/js/live.js"></script>
+{% endblock %}
+
