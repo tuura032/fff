@@ -9,12 +9,7 @@ fixed), status.
 
 ## Open
 
-- **BUG-011** (2026-09-28) — `TestPassphraseGate` fails when
-  `LEAGUE_PHRASE_SHA256` is set in the shell. Found by the ENH-025 session
-  (WORKLOG). The test isolates `LEAGUE_PHRASE` but not the digest
-  passthrough, so a leftover digest from a gated local rebuild makes it fail
-  for reasons unrelated to the code. Fix: have the test clear or patch both
-  env vars. Low impact, since only local test runs are affected. Status: open.
+None.
 
 ## Resolved
 
@@ -53,3 +48,7 @@ One line each (full write-ups: git history, 2026-09-18 → 2026-09-22).
   no jobs from 20:40 UTC (a top-level `timezone:` key from ENH-028; GitHub
   cron is UTC only) → crons rewritten in UTC, widened an hour to cover
   EDT/EST; hotfixed to `main` (c1c651c).
+- **BUG-011** (2026-09-28) — `TestPassphraseGate` failed with
+  `LEAGUE_PHRASE_SHA256` left in the shell (the digest passthrough leaked
+  into the no-gate assertions) → setUp/tearDown now save, clear, and restore
+  both passphrase vars (same pattern as `TestPhraseHashPassthrough`).

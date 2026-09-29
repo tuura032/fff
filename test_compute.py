@@ -1355,12 +1355,19 @@ class TestPassphraseGate(unittest.TestCase):
     """build.phrase_hash: the phrase never ships, only its digest."""
 
     def setUp(self):
-        self._saved = os.environ.get("LEAGUE_PHRASE")
+        # BUG-011: isolate both vars, not just the phrase. A leftover
+        # LEAGUE_PHRASE_SHA256 from a gated local rebuild would otherwise
+        # flow through the passthrough and fail the no-gate assertions.
+        self._saved = {k: os.environ.get(k)
+                       for k in ("LEAGUE_PHRASE", "LEAGUE_PHRASE_SHA256")}
+        for k in self._saved:
+            os.environ.pop(k, None)
 
     def tearDown(self):
-        os.environ.pop("LEAGUE_PHRASE", None)
-        if self._saved is not None:
-            os.environ["LEAGUE_PHRASE"] = self._saved
+        for k, v in self._saved.items():
+            os.environ.pop(k, None)
+            if v is not None:
+                os.environ[k] = v
 
     def test_no_secret_means_no_gate(self):
         os.environ.pop("LEAGUE_PHRASE", None)
