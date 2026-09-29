@@ -1,6 +1,6 @@
 # ENH-031 — Live page layout: borrow the prototype's design, keep our logic
 
-Status: open (partially shipped, see Progress) · Category: polish & UX
+Status: done 2026-09-28 · Category: polish & UX
 
 ## Progress (2026-09-28, owner-directed, unscoped commit on dev)
 
@@ -25,10 +25,22 @@ changes the spec doesn't cover. Shipped:
 - **Site-wide:** dark mode is now the default when no stored preference
   exists (toggle still pins light/dark per visitor).
 
-Remaining to finish this item: stacked scoreboard cards (3/2/1 grid, no
-name truncation at 1440), per-row win-probability bars, prototype-style
-section panels, big 0/1/2 dual numbers, logo initials fallback, colored
-table columns.
+Shipped (2026-09-28, this slice finished the item): stacked scoreboard
+cards (3/2/1 grid, team rows with a "vs" divider, full-width names — no
+truncation at 1440, ellipsis allowed at 390), per-row win-probability bars
+with percentages, four rounded section panels (Scoreboard, Score to beat,
+This week's dual points, If the week ended now) with bold headings and
+muted one-line descriptions, big 0/1/2 dual numbers under the W/TOP chips,
+initials-in-a-rounded-square logo fallback on load failure, and the
+amber/violet pairing extended from the score-to-beat hero to the LIVE/PROJ
+table columns (amber = live, violet = projected, both themes).
+
+Verified: `node --test tests/live-core.test.js` and `python -m unittest
+test_compute` pass (logic untouched — `live-core.js` unchanged); 20-point
+Playwright acceptance over light/dark × desktop (1440) / mobile (390): no
+console errors, no horizontal page scroll, no truncated team names at 1440,
+logo fallback renders under blocked logo routes, ESPN-blocked and empty
+states render; before/after screenshots in `screenshots/enh031/`.
 
 **Why:** the owner finds the thinkingcap prototype's live page
 (`D:\Workspace\ff-scoring-app-thinkingcap3.8-27b`, `public/live.html`,

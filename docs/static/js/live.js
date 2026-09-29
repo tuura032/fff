@@ -1,4 +1,4 @@
-/* live.js — the Live page controller (ENH-029, ENH-030).
+/* live.js — the Live page controller (ENH-029, ENH-030, ENH-031).
  *
  * Does the DOM work and the polling; every rule lives in live-core.js so
  * the math stays testable in Node. Fetches ESPN directly from the browser
@@ -96,10 +96,31 @@
      render helpers stay cheap lookups. */
   var logoMap = {};
 
-  function logoHtml(teamId) {
+  /* Initials in a small rounded square stand in when a logo URL is
+     missing or fails to load (ENH-031) — never a broken image. The <img>
+     carries its fallback initials in data-fb, and a capture-phase error
+     listener (registered once in init) does the swap: image error events
+     don't bubble, so per-element onerror strings would be the only other
+     way to catch them. */
+  var LOGO_FB_CLS = 'flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200';
+
+  function logoInitials(name) {
+    var words = String(name || '').toUpperCase()
+      .replace(/[^A-Z0-9 ]/g, '').split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    if (words.length === 1) return words[0].slice(0, 2);
+    return words[0].charAt(0) + words[1].charAt(0);
+  }
+
+  function logoFallbackSpan(initials) {
+    return '<span aria-hidden="true" class="' + LOGO_FB_CLS + '">' + esc(initials) + '</span>';
+  }
+
+  function logoHtml(teamId, name) {
+    var fb = logoInitials(name);
     var url = logoMap[teamId];
-    if (!url) return '';
-    return '<img src="' + esc(url) + '" alt="" loading="lazy" ' +
+    if (!url) return logoFallbackSpan(fb);
+    return '<img src="' + esc(url) + '" alt="" loading="lazy" data-fb="' + esc(fb) + '" ' +
            'class="h-5 w-5 shrink-0 rounded-full object-cover">';
   }
 
@@ -120,34 +141,52 @@
 
   /* --- Scoreboard --------------------------------------------------- */
 
-  function sideHtml(teamId, score, proj, nameOf, align, won, lost) {
-    var scoreCls = 'text-2xl font-bold tabular-nums ' + (
+  /* One team row in a scoreboard card (ENH-031): logo, name, big live
+     score, with the win probability under the name as a percentage plus
+     a thin bar (the prototype's final version) instead of one combined
+     bar. The name gets the row's full width — no truncation at 1440. */
+  function sideHtml(teamId, score, wp, nameOf, won, lost) {
+    var scoreCls = 'shrink-0 text-xl font-bold tabular-nums ' + (
       won ? 'text-emerald-600 dark:text-emerald-400'
         : lost ? 'text-slate-400 dark:text-slate-500'
         : 'text-slate-900 dark:text-white');
-    var textCls = align === 'right' ? 'text-right' : 'text-left';
+    var name = nameOf(teamId);
+    var n = Number(wp);
+    var wpLine;
+    if (wp !== null && wp !== undefined && isFinite(n)) {
+      var pct = Math.max(0, Math.min(100, Math.round(n * 100)));
+      var barCls = won ? 'bg-emerald-500'
+        : lost ? 'bg-slate-300 dark:bg-slate-600'
+        : 'bg-blue-500';
+      var pctCls = won ? 'text-emerald-600 dark:text-emerald-400'
+        : lost ? 'text-slate-400 dark:text-slate-500'
+        : 'text-slate-500 dark:text-slate-400';
+      wpLine =
+        '<div class="mt-1 flex items-center gap-2 pl-7">' +
+        '<span class="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700" title="ESPN win probability">' +
+        '<span class="block h-full ' + barCls + '" style="width:' + pct + '%"></span></span>' +
+        '<span class="w-9 shrink-0 text-right text-[11px] tabular-nums ' + pctCls + '">' + pct + '%</span>' +
+        '</div>';
+    } else {
+      wpLine = '<div class="mt-1 pl-7"></div>';
+    }
     return (
-      '<div class="min-w-0 flex-1">' +
-      '<p class="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-slate-800 dark:text-slate-100" title="' + esc(nameOf(teamId)) + '">' + logoHtml(teamId) +
-      '<span class="truncate">' + esc(nameOf(teamId)) + '</span></p>' +
-      '<p class="mt-0.5 ' + textCls + ' ' + scoreCls + '">' + one(score) + '</p>' +
-      '<p class="' + textCls + ' text-[11px] text-slate-400 dark:text-slate-500">proj ' + one(proj) + '</p>' +
+      '<div class="min-w-0">' +
+      '<div class="flex min-w-0 items-center gap-2">' +
+      logoHtml(teamId, name) +
+      '<span class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100" title="' + esc(name) + '">' + esc(name) + '</span>' +
+      '<span class="' + scoreCls + '" title="Live score">' + one(score) + '</span>' +
+      '</div>' +
+      wpLine +
       '</div>');
   }
 
+  /* Teams stacked with a "vs" divider between them, the projected totals
+     and the game state in the footer (ENH-031). The card sits on the
+     section panel, so it is slate-tinted rather than white. */
   function scoreboardCard(g, nameOf) {
     var decidedAway = g.winner === 'AWAY';
     var decidedHome = g.winner === 'HOME';
-    var awayPct = g.away.winProbability;
-    var bar = (awayPct !== null && isFinite(Number(awayPct)))
-      ? '<div class="w-20 shrink-0" title="Win probability, away / home">' +
-        '<div class="flex h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">' +
-        '<div class="h-full bg-blue-500" style="width:' + (Number(awayPct) * 100).toFixed(0) + '%"></div>' +
-        '</div>' +
-        '<p class="mt-1 text-center text-[11px] tabular-nums text-slate-500 dark:text-slate-400">' +
-        probPct(awayPct) + ' / ' + probPct(g.home.winProbability) + '</p>' +
-        '</div>'
-      : '<div class="w-20 shrink-0"></div>';
 
     var status;
     if (g.winner === 'TIE') status = 'Final &middot; tie';
@@ -157,13 +196,17 @@
     else status = 'In progress';
 
     return (
-      '<article class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">' +
-      '<div class="flex items-start gap-3">' +
-      sideHtml(g.away.teamId, g.away.live, g.away.projected, nameOf, 'left', decidedAway, decidedHome) +
-      bar +
-      sideHtml(g.home.teamId, g.home.live, g.home.projected, nameOf, 'right', decidedHome, decidedAway) +
+      '<article class="flex flex-col rounded-lg border border-slate-200 bg-slate-50 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800/50">' +
+      sideHtml(g.away.teamId, g.away.live, g.away.winProbability, nameOf, decidedAway, decidedHome) +
+      '<div class="my-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500" aria-hidden="true">' +
+      '<span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>' +
+      'vs' +
+      '<span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>' +
       '</div>' +
-      '<p class="mt-2 text-center text-xs text-slate-400 dark:text-slate-500">' + status + '</p>' +
+      sideHtml(g.home.teamId, g.home.live, g.home.winProbability, nameOf, decidedHome, decidedAway) +
+      '<p class="mt-2 border-t border-dashed border-slate-200 pt-1.5 text-center text-[11px] tabular-nums text-slate-400 dark:border-slate-700 dark:text-slate-500">' +
+      'proj ' + one(g.away.projected) + ' / ' + one(g.home.projected) + ' &middot; ' + status +
+      '</p>' +
       '</article>');
   }
 
@@ -199,7 +242,8 @@
       return {
         teamId: r.teamId,
         liveScore: r.score, projScore: pt[i].score,
-        liveDual: r.dual, projDual: pt[i].dual
+        liveDual: r.dual, projDual: pt[i].dual,
+        byed: r.byed
       };
     });
     rows.sort(function (a, b) {
@@ -217,24 +261,35 @@
     el['live-stb-body'].innerHTML = scoreRows(live, proj).map(function (r) {
       return (
         '<tr>' +
-        '<td class="px-3 py-2"><span class="flex min-w-0 items-center gap-1.5 font-medium text-slate-800 dark:text-slate-100">' + logoHtml(r.teamId) + '<span class="truncate">' + esc(nameOf(r.teamId)) + '</span></span></td>' +
-        '<td class="px-3 py-2 text-right tabular-nums">' + one(r.liveScore) + '</td>' +
+        '<td class="px-3 py-2"><span class="flex min-w-0 items-center gap-1.5 font-medium text-slate-800 dark:text-slate-100">' + logoHtml(r.teamId, nameOf(r.teamId)) + '<span class="truncate">' + esc(nameOf(r.teamId)) + '</span></span></td>' +
+        '<td class="px-3 py-2 text-right font-semibold tabular-nums text-amber-600 dark:text-amber-400">' + one(r.liveScore) + '</td>' +
         '<td class="px-3 py-2 text-right">' + vsLine(r.liveScore, live.line) + '</td>' +
-        '<td class="px-3 py-2 text-right tabular-nums">' + one(r.projScore) + '</td>' +
+        '<td class="px-3 py-2 text-right tabular-nums text-violet-600 dark:text-violet-400">' + one(r.projScore) + '</td>' +
         '<td class="px-3 py-2 text-right">' + vsLine(r.projScore, proj.line) + '</td>' +
         '</tr>');
     }).join('');
+  }
+
+  /* Big 0/1/2 with the W / TOP chips beneath it (ENH-031); a byed team
+     gets a "bye" label instead of chips. */
+  function dualCell(d, byed, numCls) {
+    var label = byed
+      ? '<span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">bye</span>'
+      : dualChips(d);
+    return (
+      '<div class="font-display text-xl font-bold tabular-nums ' + numCls + '">' + d + '</div>' +
+      '<div class="mt-0.5 flex min-h-[1.25rem] items-center justify-center gap-1">' + label + '</div>');
   }
 
   function renderDual(live, proj, nameOf) {
     el['live-dual-body'].innerHTML = scoreRows(live, proj).map(function (r) {
       return (
         '<tr>' +
-        '<td class="px-3 py-2"><span class="flex min-w-0 items-center gap-1.5 font-medium text-slate-800 dark:text-slate-100">' + logoHtml(r.teamId) + '<span class="truncate">' + esc(nameOf(r.teamId)) + '</span></span></td>' +
-        '<td class="px-3 py-2 text-right tabular-nums">' + one(r.liveScore) + '</td>' +
-        '<td class="px-3 py-2 text-center">' + dualChips(r.liveDual) + '</td>' +
-        '<td class="px-3 py-2 text-right tabular-nums">' + one(r.projScore) + '</td>' +
-        '<td class="px-3 py-2 text-center">' + dualChips(r.projDual) + '</td>' +
+        '<td class="px-3 py-2"><span class="flex min-w-0 items-center gap-1.5 font-medium text-slate-800 dark:text-slate-100">' + logoHtml(r.teamId, nameOf(r.teamId)) + '<span class="truncate">' + esc(nameOf(r.teamId)) + '</span></span></td>' +
+        '<td class="px-3 py-2 text-right font-semibold tabular-nums text-amber-600 dark:text-amber-400">' + one(r.liveScore) + '</td>' +
+        '<td class="px-3 py-2 text-center whitespace-nowrap">' + dualCell(r.liveDual, r.byed, 'text-amber-600 dark:text-amber-400') + '</td>' +
+        '<td class="px-3 py-2 text-right tabular-nums text-violet-600 dark:text-violet-400">' + one(r.projScore) + '</td>' +
+        '<td class="px-3 py-2 text-center whitespace-nowrap">' + dualCell(r.projDual, r.byed, 'text-violet-600 dark:text-violet-400') + '</td>' +
         '</tr>');
     }).join('');
   }
@@ -270,7 +325,7 @@
         return (
           '<tr>' +
           '<td class="px-3 py-2 text-right tabular-nums text-slate-500 dark:text-slate-400">' + r.rank + '</td>' +
-          '<td class="px-3 py-2"><span class="flex min-w-0 items-center gap-1.5 font-medium text-slate-800 dark:text-slate-100">' + logoHtml(r.teamId) + '<span class="truncate">' + esc(r.name) + '</span></span></td>' +
+          '<td class="px-3 py-2"><span class="flex min-w-0 items-center gap-1.5 font-medium text-slate-800 dark:text-slate-100">' + logoHtml(r.teamId, r.name) + '<span class="truncate">' + esc(r.name) + '</span></span></td>' +
           '<td class="px-3 py-2 text-right tabular-nums">' + one(r.seasonPoints) + '</td>' +
           '<td class="px-3 py-2 text-right tabular-nums">' + one(r.weekPoints) + '</td>' +
           '<td class="px-3 py-2 text-right font-semibold tabular-nums text-slate-900 dark:text-white">' + one(r.total) + '</td>' +
@@ -465,6 +520,17 @@
     });
 
     document.addEventListener('visibilitychange', onVisible);
+    /* A failed logo load swaps the <img> for its initials (ENH-031).
+       Capture phase: image error events don't bubble. */
+    document.addEventListener('error', function (e) {
+      var img = e.target;
+      if (!img || img.tagName !== 'IMG' || !img.hasAttribute('data-fb')) return;
+      var span = document.createElement('span');
+      span.setAttribute('aria-hidden', 'true');
+      span.className = LOGO_FB_CLS;
+      span.textContent = img.getAttribute('data-fb');
+      img.replaceWith(span);
+    }, true);
     setInterval(tick, 100);
   }
 
