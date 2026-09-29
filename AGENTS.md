@@ -19,8 +19,10 @@ math, or `README.md` for the full picture.
 1. `git checkout dev` (never commit to `main` — a daily bot auto-commits data
    there, and Pages deploys from it). If `main` moved, merge `origin/main`
    into `dev`, never rebase.
-2. Pick the first open item in `ENHANCEMENTS.md` or `BUGS.md`. Do exactly
-   that one thing — no drive-by refactors, no extra scripts, no "while I was
+2. Work the item you were given. If none was named, take the open bug in
+   `BUGS.md` first, then the lowest-numbered file in `enhancements/`. Read
+   only that item's file, not the whole folder, and never `enhancements/done/`
+   unless the task points there. Do exactly that one thing — no drive-by refactors, no extra scripts, no "while I was
    here."
 3. If anything is ambiguous, stop and ask rather than guessing.
 4. Append one entry to `WORKLOG.md` (local-only, gitignored — session notes
@@ -44,7 +46,7 @@ math, or `README.md` for the full picture.
 | `docs/` | rendered static site, what Pages actually serves — regenerated, don't hand-edit |
 | `SPEC.md` | architecture reference: data schema, deploy config, decisions not to re-litigate |
 | `BUGS.md` | defect log — check "Open" before assuming something's broken |
-| `ENHANCEMENTS.md` | the live backlog of open feature/polish work |
+| `enhancements/` | the backlog, one file per item (`ENH-NNN-<slug>.md`) — each file is that item's spec; finished items `git mv` to `enhancements/done/`; `NOT-BUILDING.md` lists settled "no"s; conventions in `enhancements/README.md` |
 | `WORKLOG.md` | gitignored session log — read for "what happened most recently" |
 | `screenshots/` | Playwright visual baselines, one folder per commit hash; prune old ones when it gets large (see `screenshots/README.md`) |
 

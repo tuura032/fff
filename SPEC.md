@@ -380,7 +380,7 @@ path. The original
 L1–L9 (fetch → compute → de-Flask → build → data-drive sidebar → client-side
 sort → GitHub Action/Pages → README → multi-season archive) are all complete
 as of 2026-09-22. See `WORKLOG.md` and git history for what each did. Current
-open work lives in `ENHANCEMENTS.md` and `BUGS.md`, not here.
+open work lives in `enhancements/` (one file per item) and `BUGS.md`, not here.
 
 ---
 

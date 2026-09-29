@@ -330,5 +330,5 @@ manual re-enable each August.
 | `docs/` | the rendered static site (what Pages serves) |
 | `AGENTS.md` | agent working protocol + repo map — read this first |
 | `SPEC.md` | architecture reference — scoring rule, data schema, decisions |
-| `ENHANCEMENTS.md` | the live backlog of open feature/polish work |
+| `enhancements/` | the backlog, one file per item; shipped items in `enhancements/done/` (see `enhancements/README.md`) |
 | `BUGS.md` | defect log |
