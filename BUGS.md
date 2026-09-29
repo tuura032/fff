@@ -49,3 +49,7 @@ One line each (full write-ups: git history, 2026-09-18 → 2026-09-22).
   via `root_prefix` + `base` in `layout.html`; accepted that teamId 9 changes
   owners across seasons (Maxwell 2019–20, Daniel Sharp 2021+) — comment
   corrected in `build.py`, owner-matching picker logged as ENH-027.
+- **BUG-012** (2026-09-28) — bot workflow invalid → every run failed with
+  no jobs from 20:40 UTC (a top-level `timezone:` key from ENH-028; GitHub
+  cron is UTC only) → crons rewritten in UTC, widened an hour to cover
+  EDT/EST; hotfixed to `main` (c1c651c).
