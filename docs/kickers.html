@@ -68,7 +68,7 @@
          the cached CSS with the new HTML (that is how the header redesign
          shipped broken). Don't "clean up" the ?v= in docs/ -- it comes from
          here. -->
-    <link rel="stylesheet" href="static/css/app.css?v=bc269a964bcc">
+    <link rel="stylesheet" href="static/css/app.css?v=9cf641459c01">
     <link rel="shortcut icon" type="image/png" href="static/fffIcon.png"/>
 
     <title>
@@ -77,299 +77,275 @@
   </head>
   <body class="h-full bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
 
+    <!-- Season picker + top-nav helpers (ENH-030): the picker lives in the
+         header at every breakpoint; the macros below build the six-item
+         top nav (desktop header + mobile scrolling row) and the two
+         dropdown menus, so there is one place to keep active_page in sync.
+         Defined before the header because the header calls them. -->
+
     <!-- Header: fixed, full-width, always visible at every breakpoint —
          the old Bootstrap build hid this entirely below 768px and only
          home.html had a fallback nav, so playoffs/graph had NO navigation
          on phones until that was patched. Keeping one header visible
          everywhere removes that whole class of bug instead of patching
-         around it again. -->
-    <header class="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between bg-slate-900 px-4 shadow-sm dark:bg-black">
-      <a href="index.html" class="flex items-center gap-2.5">
-        <!-- Placeholder logo: a clean vector take on the FFF favicon
-             (green circle, white FFF). Inline SVG so it is one less
-             request and stays crisp at any size. When a real mark exists,
-             replace this <svg> with an <img src="static/...">. -->
-        <svg class="h-7 w-7 shrink-0" viewBox="0 0 32 32" role="img" aria-label="FFF logo">
-          <circle cx="16" cy="16" r="16" fill="#00aa00"/>
-          <circle cx="16" cy="16" r="14.5" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1"/>
-          <text x="16" y="20.8" text-anchor="middle"
-                font-family="'Space Grotesk Variable', 'Inter Variable', sans-serif"
-                font-size="11.5" font-weight="700" letter-spacing="0.5" fill="#ffffff">FFF</text>
-        </svg>
-        <span class="font-display text-sm font-semibold tracking-tight text-white sm:text-base">
-          Fantasy Football Fantasy
-        </span>
-      </a>
-      <!-- Tagline: the gate page's brand line, centered where the bar is
-           wide enough for three zones. Absolutely positioned (not a flex
-           child) so it sits at the true middle of the bar instead of
-           drifting right of center next to the wider wordmark. Hidden on
-           mobile, where the bar only has room for wordmark + toggle. -->
-      <p class="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 text-[.65rem] font-semibold tracking-[0.3em] whitespace-nowrap text-slate-400 uppercase md:block">
-        Dual-point standings, rankings, and stats
-      </p>
-      <button class="theme-toggle-btn inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/25 text-white transition hover:border-white/60"
-              type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
-        <span data-feather="moon" class="theme-toggle-icon h-4 w-4"></span>
-      </button>
-    </header>
+         around it again.
 
-    <!-- Season picker + page nav: rendered once and shown as a sidebar on
-         desktop, a bar under the header on mobile. Same markup, laid out
-         differently by breakpoint utilities, so there's exactly one nav
-         to keep in sync with active_page instead of two. -->
-
-    <!-- Desktop sidebar -->
-    <aside class="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col border-r border-slate-200 bg-white pt-14 md:flex dark:border-slate-800 dark:bg-slate-900">
-      <div class="flex-1 space-y-4 overflow-y-auto px-3 py-4">
-        <select class="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            aria-label="Season" onchange="if (this.value) location.href = this.value">
-      
-      
-      <option selected disabled>2026 (current)</option>
-      
-      
-      <option value="2025/kickers.html">2025</option>
-      
-      
-      <option value="2024/kickers.html">2024</option>
-      
-      
-      <option value="2023/kickers.html">2023</option>
-      
-      
-      <option value="2022/kickers.html">2022</option>
-      
-      
-      <option value="2021/kickers.html">2021</option>
-      
-      
-      <option value="2020/kickers.html">2020</option>
-      
-      
-      <option value="2019/kickers.html">2019</option>
-      
-      
-    </select>
-        <nav class="space-y-1">
+         ENH-030: brand on the left, the grouped top nav in the middle,
+         season picker + theme toggle on the right. The 224px sidebar is
+         gone and the content below is centered at about 1100px, so every
+         page gets the full width back. On mobile the nav moves to a single
+         horizontally scrolling row directly under this header. -->
+    <header class="fixed inset-x-0 top-0 z-30 h-14 bg-slate-900 shadow-sm dark:bg-black">
+      <div class="mx-auto flex h-full w-full max-w-[1100px] items-center justify-between gap-2 px-3 sm:px-4">
+        <a href="index.html" class="flex min-w-0 shrink-0 items-center gap-2.5">
+          <!-- Placeholder logo: a clean vector take on the FFF favicon
+               (green circle, white FFF). Inline SVG so it is one less
+               request and stays crisp at any size. When a real mark exists,
+               replace this <svg> with an <img src="static/...">. -->
+          <svg class="h-7 w-7 shrink-0" viewBox="0 0 32 32" role="img" aria-label="FFF logo">
+            <circle cx="16" cy="16" r="16" fill="#00aa00"/>
+            <circle cx="16" cy="16" r="14.5" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1"/>
+            <text x="16" y="20.8" text-anchor="middle"
+                  font-family="'Space Grotesk Variable', 'Inter Variable', sans-serif"
+                  font-size="11.5" font-weight="700" letter-spacing="0.5" fill="#ffffff">FFF</text>
+          </svg>
+          <span class="font-display truncate text-sm font-semibold tracking-tight text-white lg:text-base">
+            Fantasy Football Fantasy
+          </span>
+        </a><nav class="hidden items-center gap-1 md:flex" aria-label="Main">
           <a href="index.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="home" class="h-4 w-4 shrink-0"></span>
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+              text-slate-400 hover:bg-white/5 hover:text-white
+              ">
       Home
     </a><a href="live.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="activity" class="h-4 w-4 shrink-0"></span>
-      Live<span class="ml-0.5 h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500" aria-hidden="true"></span>
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+              text-slate-400 hover:bg-white/5 hover:text-white
+              ">
+      Live<span class="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500" aria-hidden="true"></span>
     </a>
-
-          <div>
-            <button id="owners-toggle"
-                    class="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-                    type="button" aria-expanded="false" aria-controls="owners-panel">
-              <span class="flex items-center gap-2"><span data-feather="users" class="h-4 w-4"></span> Owners</span>
-              <span data-feather="chevron-down" id="owners-chevron" class="h-4 w-4 transition-transform"></span>
-            </button>
-            <ul id="owners-panel" class="mt-1 hidden max-h-64 space-y-0.5 overflow-y-auto pl-2">
-              
-              <li>
-                <a href="team/6.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Jamie Sug — Team Jamie">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">1</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Jamie</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Jamie</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/9.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Daniel Sha — Wyld Stallyns">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">2</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Daniel Sh.</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Wyld Stallyns</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/11.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Pat Ben — De&#39;Von to Break Free">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">3</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Pat</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">De&#39;Von to Break Free</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/7.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Daniel Sen — Daniel&#39;s Driven Team">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">4</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Daniel Se.</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Daniel&#39;s Driven Team</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/1.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Paul Tuu — Walker, Kenneth Ranger">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">5</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Paul</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Walker, Kenneth Ranger</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/5.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Nick Kub — Saquon Deez Nuts">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">6</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Nick</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Saquon Deez Nuts</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/2.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Casey Pir — Taylor Sailors">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">7</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Casey</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Taylor Sailors</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/12.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Davíd Hui — Praise JA">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">8</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Davíd</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Praise JA</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/10.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Ethan Hil — Team Ethan">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">9</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Ethan</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Team Ethan</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/3.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Sam Eng — Chat, Draft My Team">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">10</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Sam</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Chat, Draft My Team</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/4.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Nicholas Pol — Ultimate Fulfillment">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">11</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Nicholas</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">Ultimate Fulfillment</span>
-                  </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="team/8.html"
-                   class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Eric Mon — C0KER COLA">
-                  <span class="w-5 shrink-0 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">12</span>
-                  <span class="min-w-0">
-                    <span class="block truncate text-xs font-medium text-slate-700 dark:text-slate-200">Eric</span>
-                    <span class="block truncate text-[.68rem] text-slate-400 dark:text-slate-500">C0KER COLA</span>
-                  </span>
-                </a>
-              </li>
-              
-            </ul>
-          </div>
-
-          <a href="team.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="users" class="h-4 w-4 shrink-0"></span>
+          <div class="relative">
+            <button type="button" data-menu="teams-menu" aria-controls="teams-menu" aria-expanded="false"
+            class="group flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+                   text-slate-400 hover:bg-white/5 hover:text-white
+                   ">
       Teams
-    </a>
+      <svg class="h-3.5 w-3.5 transition-transform duration-150 group-aria-expanded:rotate-180" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      
+    </button>
+            <div id="teams-menu" class="hidden absolute left-0 top-full z-40 mt-2 w-72">
+              <div class="rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                <ul class="space-y-0.5"><li>
+      <a href="team/6.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Jamie Sug — Team Jamie">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">1</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Team Jamie</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Jamie</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/9.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Daniel Sha — Wyld Stallyns">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">2</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Wyld Stallyns</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Daniel Sh.</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/11.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Pat Ben — De&#39;Von to Break Free">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">3</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">De&#39;Von to Break Free</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Pat</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/7.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Daniel Sen — Daniel&#39;s Driven Team">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">4</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Daniel&#39;s Driven Team</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Daniel Se.</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/1.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Paul Tuu — Walker, Kenneth Ranger">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">5</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Walker, Kenneth Ranger</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Paul</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/5.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Nick Kub — Saquon Deez Nuts">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">6</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Saquon Deez Nuts</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Nick</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/2.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Casey Pir — Taylor Sailors">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">7</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Taylor Sailors</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Casey</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/12.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Davíd Hui — Praise JA">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">8</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Praise JA</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Davíd</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/10.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Ethan Hil — Team Ethan">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">9</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Team Ethan</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Ethan</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/3.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Sam Eng — Chat, Draft My Team">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">10</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Chat, Draft My Team</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Sam</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/4.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Nicholas Pol — Ultimate Fulfillment">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">11</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Ultimate Fulfillment</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Nicholas</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/8.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Eric Mon — C0KER COLA">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">12</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">C0KER COLA</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Eric</span>
+        </span>
+        
+      </a>
+    </li>
+    </ul>
+              </div>
+            </div>
+          </div>
           <a href="playoffs.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="bar-chart-2" class="h-4 w-4 shrink-0"></span>
-      Playoffs and Prizes
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+              text-slate-400 hover:bg-white/5 hover:text-white
+              ">
+      Playoffs
     </a>
           <a href="graph.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="layers" class="h-4 w-4 shrink-0"></span>
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+              text-slate-400 hover:bg-white/5 hover:text-white
+              ">
       Stats
     </a>
-          <a href="rivalries.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+          <div class="relative">
+            <button type="button" data-menu="alltime-menu" aria-controls="alltime-menu" aria-expanded="false"
+            class="group flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+                   bg-white/10 text-white
+                   ">
+      All-time
+      <svg class="h-3.5 w-3.5 transition-transform duration-150 group-aria-expanded:rotate-180" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      <span class="sr-only"> (current)</span>
+    </button>
+            <div id="alltime-menu" class="hidden absolute right-0 top-full z-40 mt-2 w-44">
+              <div class="rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                <ul class="space-y-0.5"><li><a href="careers.html"
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
               text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="target" class="h-4 w-4 shrink-0"></span>
-      Rivalries
-    </a>
-          <a href="careers.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="award" class="h-4 w-4 shrink-0"></span>
       Career Stats
-    </a><a href="kickers.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
-      <span data-feather="wind" class="h-4 w-4 shrink-0"></span>
-      Kickers<span class="sr-only"> (current)</span>
-    </a>
-          <a href="league.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+    </a></li>
+    <li><a href="rivalries.html"
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
               text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="info" class="h-4 w-4 shrink-0"></span>
-      League Info
-    </a>
+      Rivalries
+    </a></li>
+    <li><a href="kickers.html"
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+              bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
+      Kickers<span class="sr-only"> (current)</span>
+    </a></li></ul>
+              </div>
+            </div>
+          </div>
         </nav>
-      </div>
-    </aside>
 
-    <!-- Mobile nav: season picker + horizontally-scrollable page links,
-         directly under the (always-visible) header. -->
-    <div class="border-b border-slate-200 bg-white pt-14 md:hidden dark:border-slate-800 dark:bg-slate-900">
-      <div class="px-4 py-2">
-        <select class="w-full max-w-[12rem] rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+        <div class="flex shrink-0 items-center gap-2">
+          <select class=" rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             aria-label="Season" onchange="if (this.value) location.href = this.value">
       
       
@@ -398,66 +374,242 @@
       
       
     </select>
+          <button class="theme-toggle-btn inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/25 text-white transition hover:border-white/60"
+                  type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <span data-feather="moon" class="theme-toggle-icon h-4 w-4"></span>
+          </button>
+        </div>
       </div>
-      <nav class="flex gap-1 overflow-x-auto px-2 pb-2 text-sm">
+    </header>
+
+    <!-- Mobile nav (ENH-030): the same six items as the desktop nav, in a
+         single horizontally scrolling row under the header (the season
+         picker now lives in the header itself). The Teams and All-time
+         panels open as full-width blocks *below* the row -- outside the
+         overflow-x scroller, where an absolutely positioned popover inside
+         it would be clipped. -->
+    <div class="border-b border-slate-200 bg-white pt-14 md:hidden dark:border-slate-800 dark:bg-slate-900">
+      <nav class="flex gap-1 overflow-x-auto px-2 py-2 text-sm" aria-label="Main">
         <a href="index.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
               text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="home" class="h-4 w-4 shrink-0"></span>
       Home
     </a>
         <a href="live.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
               text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="activity" class="h-4 w-4 shrink-0"></span>
-      Live<span class="ml-0.5 h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500" aria-hidden="true"></span>
+      Live<span class="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500" aria-hidden="true"></span>
     </a>
-        <a href="team.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="users" class="h-4 w-4 shrink-0"></span>
+        <button type="button" data-menu="teams-menu-m" aria-controls="teams-menu-m" aria-expanded="false"
+            class="group flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+                   text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
       Teams
-    </a>
+      <svg class="h-3.5 w-3.5 transition-transform duration-150 group-aria-expanded:rotate-180" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      
+    </button>
         <a href="playoffs.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
               text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="bar-chart-2" class="h-4 w-4 shrink-0"></span>
       Playoffs
     </a>
         <a href="graph.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
               text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="layers" class="h-4 w-4 shrink-0"></span>
       Stats
     </a>
-        <a href="rivalries.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="target" class="h-4 w-4 shrink-0"></span>
-      Rivalries
-    </a>
-        <a href="careers.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="award" class="h-4 w-4 shrink-0"></span>
-      Careers
-    </a>
-        <a href="kickers.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
-      <span data-feather="wind" class="h-4 w-4 shrink-0"></span>
-      Kickers<span class="sr-only"> (current)</span>
-    </a>
-        <a href="league.html"
-       class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap
-              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
-      <span data-feather="info" class="h-4 w-4 shrink-0"></span>
-      League Info
-    </a>
+        <button type="button" data-menu="alltime-menu-m" aria-controls="alltime-menu-m" aria-expanded="false"
+            class="group flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+                   bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
+      All-time
+      <svg class="h-3.5 w-3.5 transition-transform duration-150 group-aria-expanded:rotate-180" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      <span class="sr-only"> (current)</span>
+    </button>
       </nav>
+      <div id="teams-menu-m" class="hidden border-t border-slate-200 px-2 py-2 dark:border-slate-800">
+        <ul class="space-y-0.5"><li>
+      <a href="team/6.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Jamie Sug — Team Jamie">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">1</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Team Jamie</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Jamie</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/9.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Daniel Sha — Wyld Stallyns">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">2</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Wyld Stallyns</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Daniel Sh.</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/11.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Pat Ben — De&#39;Von to Break Free">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">3</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">De&#39;Von to Break Free</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Pat</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/7.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Daniel Sen — Daniel&#39;s Driven Team">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">4</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Daniel&#39;s Driven Team</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Daniel Se.</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/1.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Paul Tuu — Walker, Kenneth Ranger">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">5</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Walker, Kenneth Ranger</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Paul</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/5.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Nick Kub — Saquon Deez Nuts">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">6</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Saquon Deez Nuts</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Nick</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/2.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Casey Pir — Taylor Sailors">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">7</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Taylor Sailors</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Casey</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/12.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Davíd Hui — Praise JA">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">8</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Praise JA</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Davíd</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/10.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Ethan Hil — Team Ethan">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">9</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Team Ethan</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Ethan</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/3.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Sam Eng — Chat, Draft My Team">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">10</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Chat, Draft My Team</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Sam</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/4.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Nicholas Pol — Ultimate Fulfillment">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">11</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Ultimate Fulfillment</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Nicholas</span>
+        </span>
+        
+      </a>
+    </li>
+    <li>
+      <a href="team/8.html"
+         class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5
+                hover:bg-slate-100 dark:hover:bg-slate-800"
+         title="Eric Mon — C0KER COLA">
+        <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">12</span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">C0KER COLA</span>
+          <span class="block truncate text-xs text-slate-400 dark:text-slate-500">Eric</span>
+        </span>
+        
+      </a>
+    </li>
+    </ul>
+      </div>
+      <div id="alltime-menu-m" class="hidden border-t border-slate-200 px-2 py-2 dark:border-slate-800">
+        <ul class="space-y-0.5"><li><a href="careers.html"
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      Career Stats
+    </a></li>
+    <li><a href="rivalries.html"
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+              text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+      Rivalries
+    </a></li>
+    <li><a href="kickers.html"
+       class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap
+              bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
+      Kickers<span class="sr-only"> (current)</span>
+    </a></li></ul>
+      </div>
     </div>
 
-    <main class="px-4 pt-6 pb-16 md:pt-20 md:pl-60 md:pr-8">
+    <main class="mx-auto w-full max-w-[1100px] px-4 pt-6 pb-16 md:pt-20">
       
 
 <style>
@@ -2737,10 +2889,14 @@
 
     
     
-    <footer class="px-4 pb-8 md:pl-60 md:pr-8">
+    <footer class="mx-auto w-full max-w-[1100px] px-4 pb-8">
+      <!-- League Info (ENH-030) moved from the nav to the footer, as a
+           plain link next to the data-freshness line. -->
       <p class="text-xs text-slate-400 dark:text-slate-500">
         Data through week 2
         &middot; updated <span id="data-updated" data-updated="2026-09-27T17:35:59Z"></span>
+        &middot; <a href="league.html"
+                   class="hover:text-slate-600 hover:underline dark:hover:text-slate-300">League Info</a>
       </p>
     </footer>
     <script>
@@ -2873,18 +3029,43 @@
           });
         });
 
-        // Owners collapse -- replaces Bootstrap's data-toggle="collapse"
-        // (which needed jQuery + Popper); this is the only interactive
-        // widget on the site that isn't a plain link, click-to-sort, or
-        // the theme toggle, so it doesn't need a library.
-        var ownersToggle = document.getElementById('owners-toggle');
-        var ownersPanel = document.getElementById('owners-panel');
-        var ownersChevron = document.getElementById('owners-chevron');
-        if (ownersToggle && ownersPanel) {
-          ownersToggle.addEventListener('click', function () {
-            var open = ownersPanel.classList.toggle('hidden') === false;
-            ownersToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-            if (ownersChevron) ownersChevron.style.transform = open ? 'rotate(180deg)' : '';
+        // Top-nav dropdown menus (ENH-030): the Teams and All-time buttons
+        // (desktop header + mobile scrolling row) open their panels -- the
+        // old owners accordion's aria-expanded/aria-controls pattern,
+        // reused. Only one menu is open at a time; a click outside or Esc
+        // closes whatever is open. Each button's data-menu names the panel
+        // it toggles.
+        var menuToggles = Array.prototype.slice.call(
+          document.querySelectorAll('[data-menu]'));
+        if (menuToggles.length) {
+          function panelsFor(t) {
+            return t.getAttribute('data-menu').split(/\s+/)
+              .map(function (id) { return document.getElementById(id); });
+          }
+          function closeMenus(except) {
+            menuToggles.forEach(function (t) {
+              if (t === except) return;
+              t.setAttribute('aria-expanded', 'false');
+              panelsFor(t).forEach(function (p) { p.classList.add('hidden'); });
+            });
+          }
+          menuToggles.forEach(function (t) {
+            t.addEventListener('click', function () {
+              var wasOpen = t.getAttribute('aria-expanded') === 'true';
+              closeMenus(wasOpen ? null : t);
+              t.setAttribute('aria-expanded', wasOpen ? 'false' : 'true');
+              panelsFor(t).forEach(function (p) {
+                p.classList.toggle('hidden', wasOpen);
+              });
+            });
+          });
+          document.addEventListener('click', function (e) {
+            var inside = menuToggles.some(
+              function (t) { return t.contains(e.target); });
+            if (!inside) closeMenus(null);
+          });
+          document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeMenus(null);
           });
         }
       })();

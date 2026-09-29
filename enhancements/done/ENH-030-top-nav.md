@@ -1,6 +1,6 @@
 # ENH-030 — Top nav with grouped menus; Teams dropdown replaces the Teams page
 
-Status: open · Category: polish & UX
+Status: done 2026-09-28 · Category: polish & UX
 
 **Why:** the owner prefers the top nav from the thinkingcap prototype
 (`D:\Workspace\ff-scoring-app-thinkingcap3.8-27b`: brand on the left, a few
@@ -86,3 +86,35 @@ the width this frees up.
   response. This is the check that caught BUG-010.
 - A second `build.py` run changes nothing in `docs/`.
 - Screenshots of before/after for the owner.
+
+## Shipped
+
+The sidebar is gone; every page now carries the top nav
+**Home · Live ● · Teams ▾ · Playoffs · Stats · All-time ▾** in the existing
+fixed header, with the season picker as a compact select beside the theme
+toggle and League Info in the footer next to the "Data through week N"
+line. The Teams dropdown lists all 12 teams in standings order (rank, team
+name, muted owner short name, current team's row marked) with no inner
+scrollbar; All-time holds Career Stats, Rivalries and Kickers
+(conditional, as before). Mobile keeps one horizontally scrolling nav row,
+and Teams/All-time open as full-width panels below the row, outside the
+scroller, so they never clip. Menus are `aria-expanded`/`aria-controls`
+buttons reusing the old owners-accordion JS: outside click and Esc close,
+one menu open at a time, the parent item is active on its pages. The header
+tagline moved under Home's page heading as a subtitle (both the
+current-season and past-season variants). `build.py` no longer emits the
+Teams index, the old `docs/team.html` / `docs/<season>/team.html` files were
+removed, and every nav/footer/picker href carries `root_prefix` (plus
+`base`), so all links resolve at both depths.
+
+Verified: `python -m unittest test_compute` 208/208; a Playwright pass over
+light/dark × desktop (1440) / mobile (390) on Home, a current-season team
+page, a 2019 team page, Stats and Live found no console errors and no
+horizontal scroll, confirmed both dropdowns (open, 12 rows, close on
+outside click/Esc, one at a time, mobile panels not clipped), and fetched
+every nav/footer/picker link at both depths (all 200). Two consecutive
+`build.py` runs with the gate digest preserved produced byte-identical
+`docs/` trees. Before/after screenshots in `screenshots/enh030/` (14
+shots); the site resolves its theme from `localStorage['theme']` and
+ignores the browser color scheme, so the shooting script pins the theme
+explicitly per shot.

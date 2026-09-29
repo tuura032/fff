@@ -363,14 +363,16 @@ def main():
         for template, out_name in pages:
             emit(template, out_dir / out_name, out_name)
 
-        # Team pages (ENH-025): an index at team.html, then one page per
-        # team under team/<teamId>.html. NOTE: team IDs are NOT guaranteed
-        # to stay with the same owner across seasons (teamId 9 was Maxwell
-        # in 2019-20, Daniel Sharp from 2021 on -- BUG-010), so the season
-        # picker's team/<id> links can land on a different owner's page when
-        # ESPN reuses an ID. Accepted for now; an owner-matching picker is
-        # the follow-up (ENH-027).
-        emit("team.html", out_dir / "team.html", "team.html")
+        # Team pages (ENH-025): one page per team under team/<teamId>.html.
+        # The old team.html index (a card per team) went away in ENH-030 --
+        # the Teams dropdown in the top nav links straight to these pages,
+        # so the index had one job left that the dropdown does better.
+        # NOTE: team IDs are NOT guaranteed to stay with the same owner
+        # across seasons (teamId 9 was Maxwell in 2019-20, Daniel Sharp
+        # from 2021 on -- BUG-010), so the season picker's team/<id> links
+        # can land on a different owner's page when ESPN reuses an ID.
+        # Accepted for now; an owner-matching picker is the follow-up
+        # (ENH-027).
         for row in sorted(data["standings"], key=lambda s: s["teamId"]):
             team_data = compute.build_team_season(data, row["teamId"])
             if team_data is None:

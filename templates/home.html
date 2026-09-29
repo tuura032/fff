@@ -52,6 +52,11 @@
 
 {% if playoffs %}
 <h1 class="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">{{ season }} Season</h1>
+<p class="mt-1 text-[.65rem] font-semibold tracking-[0.3em] text-slate-400 uppercase">Dual-point standings, rankings, and stats</p>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  12 owners. 7 seasons in the books. Every one of those weeks, from week 1
+  of 2019 to now.
+</p>
 <a href="playoffs.html" class="mt-3 flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 transition hover:border-amber-400 dark:border-amber-500/40 dark:bg-amber-500/10 dark:hover:border-amber-400/70">
   <span class="text-2xl" aria-hidden="true">&#127942;</span>
   <span>
@@ -70,11 +75,20 @@
 </p>
 {% elif season == current_season %}
 <h1 class="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Current Rankings Through Week {{ throughWeek }}</h1>
+<p class="mt-1 text-[.65rem] font-semibold tracking-[0.3em] text-slate-400 uppercase">Dual-point standings, rankings, and stats</p>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  12 owners. 7 seasons in the books. Every one of those weeks, from week 1
+  of 2019 to now.
+</p>
 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
   Click a column header to sort. Tap your name to pin your row.
 </p>
 {% else %}
 <h1 class="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">{{ season }} Standings Through Week {{ throughWeek }}</h1>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+  12 owners. 7 seasons in the books. Every one of those weeks, from week 1
+  of 2019 to now.
+</p>
 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
   Click a column header to sort. Tap your name to pin your row.
 </p>
