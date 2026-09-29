@@ -20,7 +20,7 @@ Work these in order. The ID is just a name; this list is the priority.
 Agents take the first unfinished line unless the owner names something
 else.
 
-1. **BUG-011** (`BUGS.md`): passphrase test isolation.
+1. **ENH-006:** team logos on the static pages (owner call, 2026-09-29).
 2. **ENH-019:** `build.py --check`.
 3. **ENH-033:** the committed site check (`python tasks.py check`).
 4. **ENH-034:** FFF's league values into `leagues.json`, with no output
