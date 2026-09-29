@@ -19,8 +19,8 @@ math, or `README.md` for the full picture.
 1. `git checkout dev` (never commit to `main` — a daily bot auto-commits data
    there, and Pages deploys from it). If `main` moved, merge `origin/main`
    into `dev`, never rebase.
-2. Work the item you were given. If none was named, take the open bug in
-   `BUGS.md` first, then the lowest-numbered file in `enhancements/`. Read
+2. Work the item you were given. If none was named, take the first unfinished
+   line of "Next up" in `enhancements/README.md`. Read
    only that item's file, not the whole folder, and never `enhancements/done/` or `enhancements/shelved/`
    unless the task points there. Do exactly that one thing — no drive-by refactors, no extra scripts, no "while I was
    here."

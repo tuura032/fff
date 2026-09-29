@@ -3,7 +3,8 @@
 The backlog. There's one file per item, so an agent reads only the item it
 was given, not the whole history.
 
-- **`enhancements/ENH-NNN-<slug>.md`**: open items. Pick one by ID.
+- **`enhancements/ENH-NNN-<slug>.md`**: open items. Pick from "Next up"
+  below, not by ID.
 - **`enhancements/done/`**: shipped items, kept for reference. Don't read
   this folder unless a task points you there.
 - **`enhancements/shelved/`**: items set aside because other work covered
@@ -12,6 +13,22 @@ was given, not the whole history.
   folder unless a task points you there.
 - **`NOT-BUILDING.md`**: decisions not to re-litigate. It's short, so read it
   before proposing anything architectural.
+
+## Next up
+
+Work these in order. The ID is just a name; this list is the priority.
+Agents take the first unfinished line unless the owner names something
+else.
+
+1. **BUG-011** (`BUGS.md`): passphrase test isolation.
+2. **ENH-019:** `build.py --check`.
+3. **ENH-033:** the committed site check (`python tasks.py check`).
+4. **ENH-034:** FFF's league values into `leagues.json`, with no output
+   change.
+5. Then the owner picks. Multi-league (ENH-032) is blocked on a privacy
+   decision; feature items are open in any order.
+
+Update this list whenever an item ships or priorities change.
 
 ## Working an item
 
