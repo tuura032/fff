@@ -98,3 +98,7 @@ details.panel summary { cursor: pointer; font-size: 13px; color: var(--muted); }
   th { position: static; }
   #refresh { margin-left: 0; }
 }
+.lb-h { font-size: 14px; margin: 18px 0 8px; color: var(--accent);
+        text-transform: uppercase; letter-spacing: .04em; }
+.lb-h:first-child { margin-top: 0; }
+table.lb-sum td, table.lb-sum th { white-space: nowrap; }

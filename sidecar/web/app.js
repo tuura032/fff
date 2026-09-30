@@ -10,6 +10,7 @@ const SOURCES = ["ffb-andy", "ffb-jason", "ffb-mike", "harris", "fp"];
 const SOURCE_LABELS = {
   "ffb-andy": "FFB · Andy", "ffb-jason": "FFB · Jason", "ffb-mike": "FFB · Mike",
   "harris": "Harris", "fp": "FantasyPros",
+  "ffb": "FFB",   // consolidated FFB rank (look-back data only)
 };
 const VIEWS = ["weekly", "ros", "dynasty"];
 const VIEW_LABELS = { weekly: "Weekly", ros: "Rest of season", dynasty: "Dynasty" };
@@ -23,6 +24,7 @@ const state = {
   rankView: "weekly",
   enabled: new Set(SOURCES),
   wa: { pos: "ALL", status: "ALL", minPct: 0, q: "" },
+  lb: { tab: "risers", pos: "ALL", who: "ALL", week: null, wpos: "QB" },
   statusTimer: null,
 };
 
@@ -132,8 +134,12 @@ function playerSub(p) {
   return bits.join(" · ");
 }
 
+function showMovers(view) {
+  return view === "weekly" && Object.keys(state.board.movers || {}).length > 0;
+}
+
 function moverCell(pid, view) {
-  if (view !== "weekly" || !state.board.movers) return "";
+  if (!showMovers(view)) return "";
   const m = state.board.movers[pid];
   if (m == null) return `<td class="num flat">·</td>`;
   const cls = m > 0 ? "up" : m < 0 ? "down" : "flat";
@@ -229,7 +235,7 @@ function renderRankings(opts = {}) {
       <td class="num muted">${c.n}</td>
       <td class="num muted">${c.spread}</td>
       <td class="num muted">T${tierMap[pid]}</td>
-      ${view === "weekly" ? moverCell(pid, view) : ""}
+      ${moverCell(pid, view)}
     </tr>`;
   }).join("");
 
@@ -246,7 +252,8 @@ function renderRankings(opts = {}) {
       ${view === "weekly" ? "<th>Opp</th>" : ""}
       ${enabled.map((s) => `<th class="num">${SOURCE_LABELS[s]}</th>`).join("")}
       <th class="num">Avg</th><th class="num">n</th><th class="num">Sprd</th>
-      <th class="num">Tier</th>${view === "weekly" ? '<th class="num">Δ</th>' : ""}
+      <th class="num">Tier</th>${showMovers(view)
+        ? `<th class="num" title="avg rank change since ${esc(b.meta.moversSince)}">Δ</th>` : ""}
     </tr></thead><tbody>${rows}</tbody></table>
     <details class="panel"><summary>Unmatched
       (${Object.values(b.unmatched).reduce((n, r) => n + r.length, 0)})</summary>
@@ -363,6 +370,154 @@ function renderTeam() {
     </div>`;
 }
 
+/* ---------------- look back ---------------- */
+
+const LB_TABS = {
+  risers: "Risers", fallers: "Fallers", new: "New since draft", off: "Off the board",
+};
+
+function srcLabel(s) { return SOURCE_LABELS[s] || s; }
+
+function whoLabel(p) {
+  if (p.status !== "OWNED") return `<span class="badge ${esc(p.status)}">${esc(p.status)}</span>`;
+  if (p.ownerTeamId === state.board.meta.myTeamId) return `<strong>mine</strong>`;
+  const t = (state.board.teams || []).find((t2) => t2.id === p.ownerTeamId);
+  return `<span class="muted">${esc(t ? t.abbrev || t.name : p.ownerTeamId)}</span>`;
+}
+
+function whoMatches(p, who) {
+  if (who === "ALL") return true;
+  if (who === "MINE") return p.ownerTeamId === state.board.meta.myTeamId;
+  if (who === "AVAIL") return p.status === "FA" || p.status === "WAIVERS";
+  return p.status === "OWNED" && p.ownerTeamId !== state.board.meta.myTeamId;
+}
+
+function renderSinceDraft(lb) {
+  const b = state.board;
+  const f = state.lb;
+  let list = Object.entries(lb.sinceDraft)
+    .map(([pid, v]) => ({ pid, ...v, p: b.players[pid] }))
+    .filter((r) => r.p && (f.pos === "ALL" || r.p.pos === f.pos) && whoMatches(r.p, f.who));
+  if (f.tab === "risers") list = list.filter((r) => r.change > 0).sort((a, c) => c.change - a.change);
+  else if (f.tab === "fallers") list = list.filter((r) => r.change < 0).sort((a, c) => a.change - c.change);
+  else if (f.tab === "new") list = list.filter((r) => r.pre == null).sort((a, c) => a.now - c.now);
+  else list = list.filter((r) => r.now == null).sort((a, c) => a.pre - c.pre);
+  const rosSrc = sourcesForView("ros").map(srcLabel).join(" + ") || "none";
+  return `
+    <h2 class="lb-h">Since the draft</h2>
+    <div class="controls">
+      <div class="tabs">${Object.entries(LB_TABS).map(([k, v]) =>
+        `<button data-lbt="${k}" class="${k === f.tab ? "active" : ""}">${v}</button>`).join("")}</div>
+      <select id="lb-pos">${["ALL", ...POS_ORDER].map((p) =>
+        `<option value="${p}" ${f.pos === p ? "selected" : ""}>${p}</option>`).join("")}</select>
+      <select id="lb-who">${[["ALL", "Everyone"], ["MINE", "My team"],
+        ["AVAIL", "Available"], ["OTHERS", "Other teams"]].map(([v, l]) =>
+        `<option value="${v}" ${f.who === v ? "selected" : ""}>${l}</option>`).join("")}</select>
+      <span class="muted">${list.length} players</span>
+    </div>
+    <p class="note">Avg positional rank. Pre-draft: ${lb.preSources.map(srcLabel).join(" + ")}
+      (PPR, early Sept). Now: rest of season, ${esc(rosSrc)}.</p>
+    <table><thead><tr><th>Player</th><th>Pos</th><th>Team</th><th>Roster</th>
+      <th class="num">Pre-draft</th><th class="num">Now</th><th class="num">Change</th>
+    </tr></thead><tbody>
+      ${list.slice(0, 60).map((r) => `<tr>
+        <td><strong>${esc(r.p.name)}</strong>${r.p.injury && r.p.injury !== "ACTIVE"
+          ? `<span class="badge ${esc(r.p.injury)}">${esc(r.p.injury.replace(/_/g, " "))}</span>` : ""}</td>
+        <td>${esc(r.p.pos)}</td><td class="muted">${esc(r.p.team) || ""}</td>
+        <td>${whoLabel(r.p)}</td>
+        <td class="num">${r.pre != null ? `${esc(r.p.pos)}${r.pre}` : "–"}</td>
+        <td class="num">${r.now != null ? `${esc(r.p.pos)}${r.now}` : "–"}</td>
+        <td class="num ${r.change > 0 ? "up" : r.change < 0 ? "down" : "flat"}">${r.change == null ? ""
+          : `${r.change > 0 ? "▲" : "▼"} ${Math.abs(r.change)}`}</td>
+      </tr>`).join("")}
+    </tbody></table>
+    ${list.length > 60 ? `<p class="note">Showing 60 of ${list.length}.</p>` : ""}`;
+}
+
+function renderWeekAccuracy(lb) {
+  const b = state.board;
+  const weeks = Object.keys(lb.weeks).sort((a, c) => a - c);
+  if (!weeks.length) return `<h2 class="lb-h">Weekly accuracy</h2>
+    <p class="note">No past-week ranks loaded (rankings/week-&lt;n&gt;.json).</p>`;
+  const f = state.lb;
+  if (!weeks.includes(f.week)) f.week = weeks[weeks.length - 1];
+  const wk = lb.weeks[f.week];
+  const srcs = [...new Set(wk.summary.map((r) => r.source))].sort();
+  const positions = POS_ORDER.filter((p) => wk.summary.some((r) => r.pos === p));
+  if (!positions.includes(f.wpos)) f.wpos = positions[0];
+  const best = {};
+  positions.forEach((pos) => {
+    best[pos] = Math.max(...wk.summary.filter((r) => r.pos === pos).map((r) => r.hits));
+  });
+  const players = wk.players.filter((p) => p.pos === f.wpos);
+  const missCell = (rank, finish) => {
+    if (rank == null) return `<td class="num muted">–</td>`;
+    const miss = rank - finish;   // > 0: finished better than ranked
+    const cls = Math.abs(miss) <= 3 ? "flat" : miss > 0 ? "up" : "down";
+    return `<td class="num">${rank} <span class="${cls}" style="font-size:11px">${
+      miss === 0 ? "✓" : (miss > 0 ? "+" : "") + miss}</span></td>`;
+  };
+  return `
+    <h2 class="lb-h">Week ${esc(f.week)}: who ranked it best</h2>
+    ${weeks.length > 1 ? `<div class="controls"><select id="lb-week">${weeks.map((w) =>
+      `<option value="${w}" ${w === f.week ? "selected" : ""}>Week ${w}</option>`).join("")}</select></div>` : ""}
+    <p class="note">Each source's week ${esc(f.week)} positional ranks vs actual FFF points.
+      <strong>Hits</strong>: of its top k, how many finished top k (k = starters league-wide).
+      <strong>Corr</strong>: rank correlation with the actual finish (1 = perfect, 0 = coin flip).
+      <strong>Avg miss</strong>: mean |rank − finish| over everyone it ranked.</p>
+    <table class="lb-sum"><thead><tr><th>Pos</th>
+      ${srcs.map((s) => `<th class="num">${srcLabel(s)} hits</th><th class="num">Corr</th><th class="num">Avg miss</th>`).join("")}
+    </tr></thead><tbody>
+      ${positions.map((pos) => `<tr><td><strong>${pos}</strong></td>${srcs.map((s) => {
+        const r = wk.summary.find((x) => x.pos === pos && x.source === s);
+        if (!r) return `<td class="num muted">–</td><td></td><td></td>`;
+        const top = srcs.length > 1 && r.hits === best[pos];
+        return `<td class="num ${top ? "up" : ""}">${r.hits}/${r.k}</td>
+          <td class="num">${r.rho != null ? r.rho.toFixed(2) : "–"}</td>
+          <td class="num muted">${r.mae.toFixed(1)} <span style="font-size:11px">(n ${r.n})</span></td>`;
+      }).join("")}</tr>`).join("")}
+    </tbody></table>
+
+    <div class="controls" style="margin-top:14px">
+      <div class="tabs">${positions.map((p) =>
+        `<button data-lbp="${p}" class="${p === f.wpos ? "active" : ""}">${p}</button>`).join("")}</div>
+      <span class="muted">sorted by actual finish · +N = beat its rank by N</span>
+    </div>
+    <table><thead><tr><th class="num">Finish</th><th>Player</th><th>Roster</th>
+      <th class="num">Pts</th>${srcs.map((s) => `<th class="num">${srcLabel(s)}</th>`).join("")}
+    </tr></thead><tbody>
+      ${players.map((r) => {
+        const p = b.players[r.espnId] || { name: `#${r.espnId}`, status: "FA" };
+        return `<tr><td class="num tier-cell">${r.finish}</td>
+          <td><strong>${esc(p.name)}</strong> <span class="muted">${esc(p.team) || ""}</span></td>
+          <td>${whoLabel(p)}</td>
+          <td class="num">${r.pts.toFixed(1)}</td>
+          ${srcs.map((s) => missCell(r.ranks[s], r.finish)).join("")}</tr>`;
+      }).join("")}
+    </tbody></table>`;
+}
+
+function renderLookback() {
+  const lb = state.board.lookback || { sinceDraft: {}, preSources: [], weeks: {} };
+  const el = $("#view-lookback");
+  if (!Object.keys(lb.sinceDraft).length && !Object.keys(lb.weeks).length) {
+    el.innerHTML = `<p class="note">No look-back data yet. The <code>history</code> source
+      reads config <code>history.dir</code>; check its status chip.</p>`;
+    return;
+  }
+  el.innerHTML = renderSinceDraft(lb) + renderWeekAccuracy(lb);
+  $$("button[data-lbt]", el).forEach((btn) => {
+    btn.onclick = () => { state.lb.tab = btn.dataset.lbt; renderLookback(); };
+  });
+  $$("button[data-lbp]", el).forEach((btn) => {
+    btn.onclick = () => { state.lb.wpos = btn.dataset.lbp; renderLookback(); };
+  });
+  $("#lb-pos").onchange = (e) => { state.lb.pos = e.target.value; renderLookback(); };
+  $("#lb-who").onchange = (e) => { state.lb.who = e.target.value; renderLookback(); };
+  const wsel = $("#lb-week");
+  if (wsel) wsel.onchange = (e) => { state.lb.week = e.target.value; renderLookback(); };
+}
+
 /* ---------------- dispatch / refresh / init ---------------- */
 
 function render() {
@@ -370,6 +525,7 @@ function render() {
   if (state.view === "waivers") renderWaivers();
   else if (state.view === "rankings") renderRankings({});
   else if (state.view === "kd") renderKD();
+  else if (state.view === "lookback") renderLookback();
   else renderTeam();
 }
 

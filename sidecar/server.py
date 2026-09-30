@@ -3,7 +3,8 @@
 Binds 127.0.0.1 only, serves web/, and a small JSON API:
 
   GET  /api/status    per-source freshness (fresh/stale/failed/never)
-  GET  /api/board     assembled board from cache; stale sources get a
+  GET  /api/board     assembled board from cache (incl. the "Look back"
+                      block from analysis.py); stale sources get a
                       background re-fetch (stale-while-revalidate, §6)
   POST /api/refresh   {"source": name} or {} to force-refresh one/all
 
@@ -17,21 +18,24 @@ python server.py [--port N] [--check]
 import argparse
 import json
 import threading
+from datetime import date
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import analysis
 import model
 import names
 import sources.espn as espn
 import sources.ffballers as ffb
 import sources.harris as harris
 import sources.fantasypros as fp
+import sources.history as history
 from sources.common import Cache, Client, age_seconds
 
 HERE = Path(__file__).resolve().parent
 SOURCES = {"espn": espn, "ffballers": ffb, "harris": harris,
-           "fantasypros": fp}
+           "fantasypros": fp, "history": history}
 # The five rank sources the board can toggle (model.py source keys).
 RANK_SOURCES = ("ffb-andy", "ffb-jason", "ffb-mike", "harris", "fp")
 VIEWS = ("weekly", "ros", "dynasty")
@@ -111,6 +115,39 @@ def _player_view(p):
     return d
 
 
+_SNAP_LOCK = threading.Lock()
+
+
+def iso_week(day):
+    y, w, _ = day.isocalendar()
+    return f"{y}-W{w:02d}"
+
+
+def snapshot_movers(cache, season, cur, today=None):
+    """Weekly movers vs last week's snapshot (SPEC.md §5).
+
+    One snapshot per ISO week (cache/snapshot-weekly-<season>-<YYYY-Www>),
+    rewritten through the week so it ends as that week's last board. The
+    comparison is against the newest snapshot from an *earlier* week, so
+    reloading the page doesn't reset it. Returns (movers, that week or None);
+    movers is {} until a previous week exists.
+    """
+    prefix = f"snapshot-weekly-{season}-"
+    this = prefix + iso_week(today or date.today())
+    with _SNAP_LOCK:
+        earlier = [n for n in cache.names(prefix) if n < this]
+        movers, since = {}, None
+        if earlier:
+            prev = {int(k): v
+                    for k, v in (cache.load(earlier[-1]) or {}).items()}
+            movers = model.movers(cur, prev)
+            since = earlier[-1][len(prefix):]
+        snap = {str(pid): round(v, 3) for pid, v in cur.items()}
+        if cache.load(this) != snap:
+            cache.save(this, snap)
+    return movers, since
+
+
 def build_board(state):
     """Assemble the /api/board payload from whatever is in cache."""
     cfg = state.cfg
@@ -126,7 +163,7 @@ def build_board(state):
     notes = []
     if players:
         matcher = names.Matcher(players, cfg.get("aliases"))
-        for name in ("ffballers", "harris", "fantasypros"):
+        for name in ("ffballers", "harris", "fantasypros", "history"):
             payload = cache.load(name)
             if not payload:
                 continue
@@ -162,20 +199,13 @@ def build_board(state):
     byes = (model.bye_conflicts(mine, league.get("currentWeek") or 0)
             if mine else {})
 
-    # Weekly movers vs the previous successful build (one snapshot file).
-    movers = {}
+    movers, movers_since = {}, None
     weekly = ranks.get("weekly") or {}
-    snap_name = f"snapshot-weekly-{cfg['season']}"
     if weekly:
         cons_w = model.consensus(
             weekly, [s for s in RANK_SOURCES if s in weekly])
         cur = {pid: c["avg"] for pid, c in cons_w.items()}
-        prev = cache.load(snap_name) or {}
-        prev = {int(k): v for k, v in prev.items()}
-        if prev:
-            movers = model.movers(cur, prev)
-        cache.save(snap_name, {str(pid): round(v, 3)
-                               for pid, v in cur.items()})
+        movers, movers_since = snapshot_movers(cache, cfg["season"], cur)
 
     return {
         "meta": {
@@ -185,6 +215,7 @@ def build_board(state):
             "scoringItems": league.get("scoringItems"),
             "lineupSlotCounts": league.get("lineupSlotCounts"),
             "upgradeMargin": cfg.get("upgradeMargin", 5),
+            "moversSince": movers_since,
         },
         "status": state.status(),
         "players": {str(p["espnId"]): _player_view(p) for p in players},
@@ -195,6 +226,7 @@ def build_board(state):
         "recommendations": {"upgrades": upgrades, "drops": drops,
                             "byes": byes},
         "movers": {str(k): v for k, v in movers.items()},
+        "lookback": analysis.lookback(ranks, cache.load("history")),
         "notes": notes,
     }
 

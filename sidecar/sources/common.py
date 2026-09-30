@@ -11,6 +11,7 @@ Owned by the Cline session (see COORDINATION.md).
 import json
 import os
 import re
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -78,10 +79,17 @@ class Cache:
             return None
 
     def save(self, name, payload):
-        target = self.dir / f"{name}.json"
-        tmp = self.dir / f"{name}.json.tmp"
-        tmp.write_text(json.dumps(payload), encoding="utf-8")
-        os.replace(tmp, target)
+        # A unique temp file per write, so two threads saving the same name
+        # can't clobber each other's half-written file.
+        fd, tmp = tempfile.mkstemp(prefix=f"{name}.", suffix=".tmp",
+                                   dir=self.dir)
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(json.dumps(payload))
+        os.replace(tmp, self.dir / f"{name}.json")
+
+    def names(self, prefix):
+        """Sorted cache names (no .json) starting with prefix."""
+        return sorted(p.stem for p in self.dir.glob(f"{prefix}*.json"))
 
 
 _DECODER = json.JSONDecoder()
