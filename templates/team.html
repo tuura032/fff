@@ -21,7 +21,8 @@
 {# went away in ENH-030 -- the Teams dropdown in the top nav links  #}
 {# straight to these pages.                                          #}
 {# ------------------------------------------------------------------ #}
-<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+  {{ team_logo(team_data.logo, team_data.name or team_data.owner, size="lg") }}
   <h1 class="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">{{ team_data.name or team_data.owner }}</h1>
   <span class="text-sm text-slate-500 dark:text-slate-400">{{ team_data.owner | short }}</span>
 </div>

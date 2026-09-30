@@ -140,9 +140,12 @@
              identity the table leads with. #}
           <td class="px-3 py-2">
             <a href="team/{{ info.teamId }}.html" class="group block">
-              <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">{{ info.owner | short }}</span>
-              <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
-              {% if info.name %}<span class="block truncate text-xs text-slate-400 dark:text-slate-500">{{ info.name }}</span>{% endif %}
+              <span class="flex items-center gap-2">
+                {{ team_logo(info.logo, info.name or info.owner | short) }}
+                <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">{{ info.owner | short }}</span>
+                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+              </span>
+              {% if info.name %}<span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">{{ info.name }}</span>{% endif %}
             </a>
           </td>
           {% if has_final_ranks %}

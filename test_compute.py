@@ -82,6 +82,8 @@ def make_raw(weeks, week_count=14, season=2025, bracket=None,
         schedule.append(m)
     teams = [{"id": i, "name": f"Team {i}", "primaryOwner": f"{{o{i}}}",
               "owners": [f"{{o{i}}}"],
+              "logo": f"https://logos.example/{i}.png",
+              "abbrev": f"T{i:02d}",
               # ESPN publishes 0 until the season is over.
               "rankCalculatedFinal": (final_ranks or {}).get(i, 0)}
              for i in range(1, 13)]
@@ -705,6 +707,40 @@ class TestFinalRank(unittest.TestCase):
         self.assertEqual(by_team[12]["rank"], 1)
         self.assertEqual(by_team[12]["finalRank"], 4)
         self.assertEqual(by_team[2]["finalRank"], 1)
+
+
+class TestTeamLogos(unittest.TestCase):
+    """ENH-006: logo and abbrev ride from the raw mTeam block onto the
+    standings rows and the per-team page data. They are per season, so the
+    values always come from that season's own raw file.
+    """
+
+    def test_logo_and_abbrev_carry_onto_standings_rows(self):
+        out = compute.build_standings(make_raw(full_season_weeks()), UPDATED)
+        by_team = {r["teamId"]: r for r in out["standings"]}
+        for i in range(1, 13):
+            self.assertEqual(by_team[i]["logo"],
+                             f"https://logos.example/{i}.png")
+            self.assertEqual(by_team[i]["abbrev"], f"T{i:02d}")
+
+    def test_missing_logo_and_abbrev_become_none(self):
+        # A raw without the keys (or with empty strings) must not crash or
+        # emit "" -- the template renders initials for None.
+        raw = make_raw(full_season_weeks())
+        for t in raw["mTeam"]["teams"]:
+            del t["logo"]
+            t["abbrev"] = ""
+        out = compute.build_standings(raw, UPDATED)
+        for r in out["standings"]:
+            self.assertIsNone(r["logo"])
+            self.assertIsNone(r["abbrev"])
+
+    def test_logo_reaches_the_team_page_data(self):
+        season = compute.build_standings(make_raw(full_season_weeks()),
+                                         UPDATED)
+        d = compute.build_team_season(season, 12)
+        self.assertEqual(d["logo"], "https://logos.example/12.png")
+        self.assertEqual(d["abbrev"], "T12")
 
 
 class TestOrdinalFilter(unittest.TestCase):

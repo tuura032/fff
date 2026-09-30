@@ -59,8 +59,12 @@
 <h1 class="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Playoffs</h1>
 
 {% if playoffs %}
+{% set teams_by_id = {} %}
+{% for s in standings %}{% set _ = teams_by_id.update({s.teamId: s}) %}{% endfor %}
+{% set champ = teams_by_id.get(playoffs.champion) %}
 <div class="mt-4 flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-500/40 dark:bg-amber-500/10">
   <span class="text-2xl" aria-hidden="true">&#127942;</span>
+  {{ team_logo(champ.logo if champ else none, champ.name if champ else (owner_by_team[playoffs.champion] or ""), size="lg") }}
   <div>
     <div class="text-xs font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-400">{{ season }} Champion</div>
     <a href="team/{{ playoffs.champion }}.html" class="text-lg font-semibold text-slate-900 hover:text-blue-700 dark:text-white dark:hover:text-blue-400">{{ owner_by_team[playoffs.champion] | short }}</a>
@@ -102,7 +106,10 @@
           <a href="team/{{ info.teamId }}.html" class="text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400">{{ info.owner | short }}</a>
         </td>
         <td class="hidden px-3 py-2 sm:table-cell">
-          <a href="team/{{ info.teamId }}.html" class="text-slate-500 hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-400">{{ info.name }}</a>
+          <a href="team/{{ info.teamId }}.html" class="flex items-center gap-2 text-slate-500 hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-400">
+            {{ team_logo(info.logo, info.name or info.owner | short) }}
+            <span>{{ info.name }}</span>
+          </a>
         </td>
         <td class="px-3 py-2 text-right text-slate-600 dark:text-slate-400">{{ info.rank }}</td>
         <td class="hidden px-3 py-2 text-right text-slate-600 sm:table-cell dark:text-slate-400">{{ info.record }}</td>

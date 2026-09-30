@@ -110,6 +110,24 @@ def ordinal(n):
     return f"{n}{suffix}"
 
 
+def initials(name):
+    """Fallback initials for a team logo (ENH-006).
+
+    The same rule the live page applies in JS (live.js logoInitials):
+    uppercase, strip punctuation, one word -> its first two letters,
+    several words -> the first letter of the first two. A name with no
+    letters at all still gets a "?". It is a build.py filter because this
+    Jinja environment has no regex_replace, and punctuation cannot be
+    stripped any other way in a template.
+    """
+    words = re.sub(r"[^A-Z0-9 ]", "", str(name or "").upper()).split()
+    if not words:
+        return "?"
+    if len(words) == 1:
+        return words[0][:2]
+    return words[0][0] + words[1][0]
+
+
 def _archive_static_ignore(base, names):
     """shutil.copytree ignore callback for the archive static/ copies.
 
@@ -209,6 +227,7 @@ def main():
     env = Environment(loader=FileSystemLoader("templates"),
                       autoescape=select_autoescape())
     env.filters["ordinal"] = ordinal
+    env.filters["initials"] = initials
     gate_hash = phrase_hash()
     if gate_hash:
         print("Passphrase gate: enabled (hash baked in, phrase not stored)")

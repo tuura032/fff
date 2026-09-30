@@ -447,8 +447,14 @@ def build_standings(raw, updated):
         # Final is computed from results, so the manual reseed doesn't
         # corrupt it.
         final_rank = t.get("rankCalculatedFinal") or None
+        # Logo and abbrev come straight from ESPN's mTeam block. They are
+        # per season (owners change them), so each season's raw file is the
+        # source of truth for that season's pages. .get(): fixtures and any
+        # hand-built raw may omit them; the template renders initials.
         team_info[t["id"]] = {"name": t.get("name"), "owner": owner_name,
-                              "finalRank": final_rank}
+                              "finalRank": final_rank,
+                              "logo": t.get("logo") or None,
+                              "abbrev": t.get("abbrev") or None}
 
     # Group by matchupPeriodId — never index the schedule by arithmetic
     # (SPEC.md §3: the playoffs do not have 6 entries per week).
@@ -505,6 +511,8 @@ def build_standings(raw, updated):
             "teamId": tid,
             "name": info["name"],
             "owner": info["owner"],
+            "logo": info["logo"],
+            "abbrev": info["abbrev"],
             "points": s["h2hPoints"] + s["topHalfPoints"],
             "h2hPoints": s["h2hPoints"],
             "topHalfPoints": s["topHalfPoints"],
@@ -1605,6 +1613,8 @@ def build_team_season(season, team_id):
         "teamId": team_id,
         "name": info.get("name"),
         "owner": info["owner"],
+        "logo": info.get("logo"),
+        "abbrev": info.get("abbrev"),
         "rank": info["rank"],
         "points": info["points"],
         "record": info.get("record"),

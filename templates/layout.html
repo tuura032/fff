@@ -162,6 +162,7 @@
                 {% if is_current %}bg-blue-50 dark:bg-blue-500/10{% else %}hover:bg-slate-100 dark:hover:bg-slate-800{% endif %}"
          title="{{ info.owner }} — {{ info.name }}">
         <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">{{ info.rank }}</span>
+        {{ team_logo(info.logo, info.name or info.owner | short) }}
         <span class="min-w-0 flex-1">
           <span class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{{ info.name or info.owner | short }}</span>
           {% if info.name %}<span class="block truncate text-xs text-slate-400 dark:text-slate-500">{{ info.owner | short }}</span>{% endif %}
@@ -170,6 +171,24 @@
       </a>
     </li>
     {% endfor -%}
+    {%- endmacro %}
+
+    {#- Team logo with the live page's fallback (ENH-006), so logos look the
+        same everywhere: the circle image, or initials in a rounded square
+        when the URL is missing (rendered here) or fails to load (swapped in
+        by static/js/team-logo.js, which reads the data-* attributes). A
+        dead third-party image never breaks the layout. The initials filter
+        lives in build.py (no regex_replace in this Jinja environment). -#}
+    {% macro team_logo(logo, name, size="sm") -%}
+    {%- set box = "h-10 w-10" if size == "lg" else "h-5 w-5" -%}
+    {%- set txt = "text-sm" if size == "lg" else "text-[9px]" -%}
+    {%- set fb_cls = "flex " ~ box ~ " shrink-0 items-center justify-center rounded bg-slate-200 " ~ txt ~ " font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" -%}
+    {%- set fb = name | initials -%}
+    {%- if logo -%}
+    <img src="{{ logo }}" alt="" loading="lazy" data-logo-fb="{{ fb }}" data-logo-fb-cls="{{ fb_cls }}" class="{{ box }} shrink-0 rounded-full object-cover">
+    {%- else -%}
+    <span aria-hidden="true" class="{{ fb_cls }}">{{ fb }}</span>
+    {%- endif -%}
     {%- endmacro %}
 
     {#- All-time dropdown rows: Career Stats, Rivalries, and Kickers (the
@@ -402,6 +421,11 @@
       })();
     </script>
     {% endif %}
+
+    <!-- Team logo fallback (ENH-006): swaps a failed logo for its initials.
+         root_prefix climbs to the season root on team/<id>.html pages, the
+         same way the stylesheet link above does. -->
+    <script src="{{ root_prefix }}static/js/team-logo.js"></script>
 
     <!-- Icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.2/feather.min.js" integrity="sha512-zMm7+ZQ8AZr1r3W8Z8lDATkH05QG5Gm2xc6MlsCdBz9l6oE8Y7IXByMgSm/rdRQrhuHt99HAYfMljBOEZ68q5A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
