@@ -9,3 +9,6 @@ node_modules/
 
 # local-only: per-session worklog (AI session notes stay out of the public repo)
 WORKLOG.md
+
+# sidecar (local-only admin tool): fetched third-party rankings + ESPN snapshots never get committed
+sidecar/cache/

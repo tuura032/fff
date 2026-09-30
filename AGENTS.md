@@ -47,6 +47,7 @@ math, or `README.md` for the full picture.
 | `SPEC.md` | architecture reference: data schema, deploy config, decisions not to re-litigate |
 | `BUGS.md` | defect log — check "Open" before assuming something's broken |
 | `enhancements/` | the backlog, one file per item (`ENH-NNN-<slug>.md`) — each file is that item's spec; finished items `git mv` to `enhancements/done/`; `NOT-BUILDING.md` lists settled "no"s; conventions in `enhancements/README.md` |
+| `sidecar/` | separate local-only admin tool (waiver/rankings board), **not** part of the site; its own `SPEC.md`; `sidecar/cache/` is gitignored and third-party rankings must never be committed |
 | `WORKLOG.md` | gitignored session log — read for "what happened most recently" |
 | `screenshots/` | Playwright visual baselines, one folder per commit hash; prune old ones when it gets large (see `screenshots/README.md`) |
 
