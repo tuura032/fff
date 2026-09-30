@@ -257,8 +257,9 @@ class Handler(SimpleHTTPRequestHandler):
         elif path == "/api/board":
             board = build_board(self.state)
             for name, st in board["status"].items():
-                if st["state"] == "stale":
-                    self.state.refresh(name)  # stale-while-revalidate
+                # stale-while-revalidate; "never" covers a newly added source
+                if st["state"] in ("stale", "never"):
+                    self.state.refresh(name)
             self._json(board)
         else:
             super().do_GET()
