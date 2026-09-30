@@ -74,6 +74,15 @@
     <title>
     Fantasy Football Fantasy
 </title>
+    <!-- Team logo fallback (ENH-006): must run in <head>, before the body's
+         images exist, so the capture listener is attached before any logo can
+         fail -- a dead host can 404 faster than a bottom-of-body script
+         loads, and an error event that fires first is never re-dispatched.
+         The script also sweeps once for images that already failed, so it
+         still works if this tag ever moves below the content. root_prefix
+         climbs to the season root on team/<id>.html pages, the same way the
+         stylesheet link above does. -->
+    <script src="static/js/team-logo.js"></script>
   </head>
   <body class="h-full bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
 
@@ -678,16 +687,16 @@
   12 owners. 7 seasons in the books. Every one of those weeks, from week 1
   of 2019 to now.
 </p>
-<a href="playoffs.html" class="mt-3 flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 transition hover:border-amber-400 dark:border-amber-500/40 dark:bg-amber-500/10 dark:hover:border-amber-400/70">
+<div class="mt-3 flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-500/40 dark:bg-amber-500/10">
   <span class="text-2xl" aria-hidden="true">&#127942;</span>
   <span>
     <span class="block text-xs font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-400">2019 Champion</span>
     <a href="team/4.html" class="block text-lg font-semibold text-slate-900 hover:text-blue-700 dark:text-white dark:hover:text-blue-400">Nicholas</a>
     <span class="block text-xs text-slate-600 dark:text-slate-400">
-      Beat Eric 139.1&ndash;121.4 in the week 16 final &middot; see the full bracket
+      Beat Eric 139.1&ndash;121.4 in the week 16 final &middot; <a href="playoffs.html" class="hover:text-blue-700 hover:underline dark:hover:text-blue-400">see the full bracket</a>
     </span>
   </span>
-</a>
+</div>
 <h2 class="mt-6 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Regular season standings</h2>
 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
   The dual-point table, weeks 1&ndash;13. <strong>Finish</strong> is where each
@@ -733,7 +742,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://i.imgur.com/SWQCH2Z.png" alt="" loading="lazy" data-logo-fb="CT" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Casey</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Cooper Troopers</span>
             </a>
@@ -776,7 +785,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://g.espncdn.com/lm-static/logo-packs/ffl/AtTheStadium-RobbHarskamp/At_The_Stadium_15.svg" alt="" loading="lazy" data-logo-fb="TC" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Eric</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">THE CHAMPN&#39;T IS HERE</span>
             </a>
@@ -819,7 +828,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://g.espncdn.com/lm-static/ffl/images/default_logos/12.svg" alt="" loading="lazy" data-logo-fb="YQ" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Pat</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">¡Yo Quiero Tac Odell!</span>
             </a>
@@ -861,7 +870,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://g.espncdn.com/lm-static/ffl/images/default_logos/6.svg" alt="" loading="lazy" data-logo-fb="KM" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Paul</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Kamara Meha</span>
             </a>
@@ -903,7 +912,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://g.espncdn.com/lm-static/ffl/images/default_logos/20.svg" alt="" loading="lazy" data-logo-fb="UF" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Nicholas</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Ultimate Fulfillment</span>
             </a>
@@ -945,7 +954,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://g.espncdn.com/lm-static/ffl/images/default_logos/19.svg" alt="" loading="lazy" data-logo-fb="TJ" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Jamie</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Team Jamie</span>
             </a>
@@ -993,7 +1002,7 @@
               <span class="flex items-center gap-2">
                 <img src="http://www.wafb.com/resizer/xVRvBIKtU7wTcexID8tyuWOJ59U=/1200x600/arc-anglerfish-arc2-prod-raycom.s3.amazonaws.com/public/7VF55SWUV5G6DM53BLFDIEK5QE.jpg" alt="" loading="lazy" data-logo-fb="AF" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Sam</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Amputees for Taking the Knee</span>
             </a>
@@ -1035,7 +1044,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://g.espncdn.com/s/ffllm/logos/TeamMascots-RobbHarskamp/Team_Mascots-01.svg" alt="" loading="lazy" data-logo-fb="MA" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Daniel Se.</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Mahomes and Mahomies</span>
             </a>
@@ -1077,7 +1086,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://g.espncdn.com/lm-static/ffl/images/default_logos/1.svg" alt="" loading="lazy" data-logo-fb="TD" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Davíd</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Team Davíd</span>
             </a>
@@ -1119,7 +1128,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://www.themarysue.com/wp-content/uploads/2014/09/bronn-game-of-thrones.jpg" alt="" loading="lazy" data-logo-fb="CB" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Nick</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Cleveland Bronns</span>
             </a>
@@ -1161,7 +1170,7 @@
               <span class="flex items-center gap-2">
                 <img src="http://i.imgur.com/DwJXoX2.jpg" alt="" loading="lazy" data-logo-fb="TE" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Ethan</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Team Ethan</span>
             </a>
@@ -1203,7 +1212,7 @@
               <span class="flex items-center gap-2">
                 <img src="https://g.espncdn.com/lm-static/logo-packs/ffl/AtTheStadium-RobbHarskamp/At_The_Stadium_01.svg" alt="" loading="lazy" data-logo-fb="TB" data-logo-fb-cls="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 <span class="font-medium text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">Maxwell</span>
-                <span class="pin-badge ml-2 hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
+                <span class="pin-badge hidden rounded bg-blue-100 px-1.5 py-0.5 text-[.65rem] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">You</span>
               </span>
               <span class="block truncate pl-7 text-xs text-slate-400 dark:text-slate-500">Team Beer</span>
             </a>
@@ -1397,11 +1406,6 @@
       })();
     </script>
     
-
-    <!-- Team logo fallback (ENH-006): swaps a failed logo for its initials.
-         root_prefix climbs to the season root on team/<id>.html pages, the
-         same way the stylesheet link above does. -->
-    <script src="static/js/team-logo.js"></script>
 
     <!-- Icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.2/feather.min.js" integrity="sha512-zMm7+ZQ8AZr1r3W8Z8lDATkH05QG5Gm2xc6MlsCdBz9l6oE8Y7IXByMgSm/rdRQrhuHt99HAYfMljBOEZ68q5A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
