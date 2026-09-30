@@ -25,6 +25,8 @@ const state = {
   enabled: new Set(SOURCES),
   wa: { pos: "ALL", status: "ALL", minPct: 0, q: "" },
   lb: { tab: "risers", pos: "ALL", who: "ALL", week: null, wpos: "QB" },
+  rk: { pos: "ALL", q: "" },
+  sort: {},          // per-table { col, dir } — survives view switches
   statusTimer: null,
 };
 
@@ -147,7 +149,111 @@ function moverCell(pid, view) {
   return `<td class="num ${cls}">${arrow} ${Math.abs(m).toFixed(1)}</td>`;
 }
 
+/* ---------------- sortable tables ---------------- */
+
+// A column: { id, label, num?, title?, get(row) -> sort value,
+//             cell?(row) -> inner HTML (default: escaped get), cls?(row) }.
+// Every data table goes through sortTable(), so they all sort, scroll
+// inside their own box and keep a sticky header the same way.
+
+function applySort(rows, cols, sort) {
+  if (!sort) return rows;
+  const col = cols.find((c) => c.id === sort.col);
+  if (!col) return rows;
+  const dir = sort.dir || 1;
+  return rows.slice().sort((a, b) => {
+    const va = col.get(a), vb = col.get(b);
+    if (va == null && vb == null) return a._i - b._i;
+    if (va == null) return 1;  // blanks always last, either direction
+    if (vb == null) return -1;
+    return (va < vb ? -1 : va > vb ? 1 : 0) * dir || (a._i - b._i);
+  });
+}
+
+function thHTML(col, sort) {
+  const active = sort && sort.col === col.id;
+  const arrow = active ? (sort.dir === 1 ? "▲" : "▼") : "";
+  const aria = active
+    ? ` aria-sort="${sort.dir === 1 ? "ascending" : "descending"}"` : "";
+  const title = col.title ? ` title="${esc(col.title)}"` : "";
+  return `<th class="${col.num ? "num " : ""}sort" data-sort="${col.id}"${aria}${title}>` +
+    `${col.label}<span class="sort-arrow">${arrow}</span></th>`;
+}
+
+function sortTable(key, cols, rows, opts = {}) {
+  rows.forEach((r, i) => { r._i = i; });
+  const sort = state.sort[key] || null;
+  const shown = applySort(rows, cols, sort).slice(0, opts.limit || Infinity);
+  const body = shown.map((r) => `<tr>${cols.map((c) => {
+    const cls = [c.num ? "num" : "", c.cls ? c.cls(r) || "" : ""].join(" ").trim();
+    const inner = c.cell ? c.cell(r) : esc(c.get(r) ?? "");
+    return `<td${cls ? ` class="${cls}"` : ""}>${inner}</td>`;
+  }).join("")}</tr>`).join("");
+  const more = opts.limit && rows.length > opts.limit
+    ? `<p class="note">Showing ${opts.limit} of ${rows.length}${opts.moreNote || ""}.</p>` : "";
+  return `<div class="tbl-wrap${opts.compact ? " compact" : ""}" data-key="${key}">
+    <table><thead><tr>${cols.map((c) => thHTML(c, sort)).join("")}</tr></thead>
+    <tbody>${body || `<tr><td colspan="${cols.length}" class="muted">Nothing to show.</td></tr>`}</tbody></table>
+    </div>${more}`;
+}
+
+// Click a header: sort by it (numbers start high→low... except ranks,
+// which start best-first), click again to flip, a third time to reset.
+function toggleSort(key, colId, cols) {
+  const cur = state.sort[key];
+  const col = cols.find((c) => c.id === colId) || {};
+  const first = col.firstDir || (col.num ? -1 : 1);
+  if (!cur || cur.col !== colId) state.sort[key] = { col: colId, dir: first };
+  else if (cur.dir === first) cur.dir = -first;
+  else delete state.sort[key];
+  const wrap = $(`.tbl-wrap[data-key="${key}"]`);
+  const top = wrap ? wrap.scrollTop : 0;
+  render();
+  const w2 = $(`.tbl-wrap[data-key="${key}"]`);
+  if (w2) w2.scrollTop = top;
+}
+
+function bindSort(el, key, cols) {
+  $$(`.tbl-wrap[data-key="${key}"] th[data-sort]`, el).forEach((th) => {
+    th.onclick = () => toggleSort(key, th.dataset.sort, cols);
+  });
+}
+
+function posChips(id, current, positions) {
+  return `<div class="tabs" id="${id}">${positions.map((p) =>
+    `<button data-pos="${p}" class="${p === current ? "active" : ""}">${p === "ALL" ? "All" : p}</button>`).join("")}</div>`;
+}
+
+const OPP_ABBR = { JAC: "JAX", WAS: "WSH", LA: "LAR" };
+
+// Opponents arrive as "@ LV" / "NE" (Harris: bare = home) and
+// "at HOU" / "vs. JAC" (FantasyPros). Show one format: "@LV", "vs NE".
+function fmtOpp(o) {
+  const s = String(o || "").trim();
+  if (!s) return "";
+  const m = s.match(/^(@|at\b|vs\.?)?\s*([A-Za-z]{2,3})$/i);
+  if (!m) return s;
+  const team = OPP_ABBR[m[2].toUpperCase()] || m[2].toUpperCase();
+  const away = m[1] && (m[1] === "@" || m[1].toLowerCase() === "at");
+  return away ? `@${team}` : `vs ${team}`;
+}
+
+const injuryCell = (inj) => (inj && inj !== "ACTIVE"
+  ? `<span class="badge ${esc(inj)}">${esc(inj.replace(/_/g, " "))}</span>` : "");
+
 /* ---------------- waivers ---------------- */
+
+const WAIVERS_COLS = [
+  { id: "name", label: "Player", get: (r) => r.name.toLowerCase(),
+    cell: (r) => `<strong>${esc(r.name)}</strong>${injuryCell(r.injury)}` },
+  { id: "pos", label: "Pos", get: (r) => POS_ORDER.indexOf(r.pos), cell: (r) => esc(r.pos) },
+  { id: "team", label: "Team", get: (r) => r.team, cls: () => "muted" },
+  { id: "bye", label: "Bye", num: true, firstDir: 1, get: (r) => r.bye },
+  { id: "status", label: "Status", get: (r) => r.status,
+    cell: (r) => `<span class="badge ${r.status}">${r.status}</span>` },
+  { id: "owned", label: "Owned %", num: true, get: (r) => r.pctOwned,
+    cell: (r) => (r.pctOwned != null ? r.pctOwned.toFixed(1) : "–") },
+];
 
 function renderWaivers() {
   const b = state.board;
@@ -165,30 +271,20 @@ function renderWaivers() {
       || a.name.localeCompare(b2.name));
   el.innerHTML = `
     <div class="controls">
-      <select id="wa-pos">${["ALL", ...POS_ORDER].map((p) =>
-        `<option value="${p}" ${f.pos === p ? "selected" : ""}>${p}</option>`).join("")}</select>
-      <select id="wa-status">${["ALL", "WAIVERS", "FA"].map((s) =>
-        `<option value="${s}" ${f.status === s ? "selected" : ""}>${s}</option>`).join("")}</select>
-      <label class="tog">min owned
+      ${posChips("wa-pos", f.pos, ["ALL", ...POS_ORDER])}
+      <select id="wa-status">${[["ALL", "FA + waivers"], ["WAIVERS", "Waivers"], ["FA", "Free agents"]]
+        .map(([v, l]) => `<option value="${v}" ${f.status === v ? "selected" : ""}>${l}</option>`).join("")}</select>
+      <label class="tog">min owned %
         <input type="number" id="wa-pct" min="0" max="100" step="5"
                value="${f.minPct}" style="width:64px"></label>
       <input type="text" id="wa-q" placeholder="search name…" value="${esc(f.q)}">
       <span class="muted">${list.length} players</span>
     </div>
-    <table><thead><tr>
-      <th>Player</th><th>Pos</th><th>Team</th><th>Status</th>
-      <th class="num">Owned</th><th>Injury</th>
-    </tr></thead><tbody>
-      ${list.slice(0, 400).map((p) => `<tr>
-        <td>${esc(p.name)}<div class="muted" style="font-size:11px">${playerSub(p)}</div></td>
-        <td>${esc(p.pos)}</td><td>${esc(p.team) || ""}</td>
-        <td><span class="badge ${p.status}">${p.status}</span></td>
-        <td class="num">${p.pctOwned != null ? p.pctOwned.toFixed(1) : "–"}</td>
-        <td class="muted">${esc(p.injury) || ""}</td>
-      </tr>`).join("")}
-    </tbody></table>
-    ${list.length > 400 ? `<p class="note">Showing 400 of ${list.length} — narrow the filters.</p>` : ""}`;
-  $("#wa-pos").onchange = (e) => { state.wa.pos = e.target.value; renderWaivers(); };
+    ${sortTable("waivers", WAIVERS_COLS, list, { limit: 400, moreNote: " — narrow the filters" })}`;
+  bindSort(el, "waivers", WAIVERS_COLS);
+  $$("#wa-pos button", el).forEach((btn) => {
+    btn.onclick = () => { state.wa.pos = btn.dataset.pos; renderWaivers(); };
+  });
   $("#wa-status").onchange = (e) => { state.wa.status = e.target.value; renderWaivers(); };
   $("#wa-pct").onchange = (e) => { state.wa.minPct = Number(e.target.value) || 0; renderWaivers(); };
   $("#wa-q").oninput = (e) => {
@@ -205,56 +301,103 @@ function sourcesForView(view) {
   return SOURCES.filter((s) => ranks[s] && Object.keys(ranks[s]).length);
 }
 
-function renderRankings(opts = {}) {
-  const el = $(opts.el || "#view-rankings");
+// Board rows for one view + position set. Ranks are positional, so the
+// rank shown and the tiers are computed within each position — a QB1 and
+// an RB1 are both "1", never #1 and #2 of one list.
+function rankRows(view, enabled, positions) {
   const b = state.board;
-  const view = state.rankView;
-  const avail = sourcesForView(view);
-  const enabled = SOURCES.filter((s) => state.enabled.has(s) && avail.includes(s));
   const cons = consensus(b.ranks[view] || {}, enabled);
   const order = boardOrder(cons, Math.max(1, enabled.length))
-    .filter((pid) => !opts.positions
-      || opts.positions.includes(b.players[pid] && b.players[pid].pos));
-  const tierMap = {};
-  tiers(order.map((pid) => cons[pid].avg)).forEach((t, i) => { tierMap[order[i]] = t; });
-
-  const rows = order.map((pid, i) => {
+    .filter((pid) => b.players[pid] && positions.includes(b.players[pid].pos));
+  const byPos = {};
+  order.forEach((pid) => (byPos[b.players[pid].pos] = byPos[b.players[pid].pos] || []).push(pid));
+  const posRank = {}, tierOf = {};
+  Object.values(byPos).forEach((ids) => {
+    ids.forEach((pid, i) => { posRank[pid] = i + 1; });
+    tiers(ids.map((pid) => cons[pid].avg)).forEach((t, i) => { tierOf[ids[i]] = t; });
+  });
+  return order.map((pid) => {
     const p = b.players[pid];
     const c = cons[pid];
-    const opp = (view === "weekly" && b.weekInfo[pid]) || null;
-    const rankCells = enabled.map((s) =>
-      `<td class="num">${c.ranks[s] != null ? c.ranks[s] : "–"}</td>`).join("");
-    return `<tr>
-      <td class="num tier-cell">${i + 1}</td>
-      <td><strong>${esc(p ? p.name : pid)}</strong></td>
-      <td>${esc(p ? p.pos : "")}</td>
-      <td class="muted">${esc(p && p.team) || ""}</td>
-      ${view === "weekly" ? `<td class="muted">${esc(opp ? opp.opponent : "")}</td>` : ""}
-      ${rankCells}
-      <td class="num"><strong>${c.avg.toFixed(1)}</strong></td>
-      <td class="num muted">${c.n}</td>
-      <td class="num muted">${c.spread}</td>
-      <td class="num muted">T${tierMap[pid]}</td>
-      ${moverCell(pid, view)}
-    </tr>`;
-  }).join("");
+    return {
+      pid, name: p.name, pos: p.pos, team: p.team, injury: p.injury,
+      status: p.status, ownerTeamId: p.ownerTeamId,
+      opp: view === "weekly" && b.weekInfo[pid] ? fmtOpp(b.weekInfo[pid].opponent) : "",
+      posRank: posRank[pid], tier: tierOf[pid], avg: c.avg, n: c.n,
+      spread: c.spread, src: c.ranks, mover: (b.movers || {})[pid],
+    };
+  });
+}
 
+function rankCols(view, enabled, multiPos) {
+  const b = state.board;
+  const cols = [
+    { id: "rank", label: "Rk", num: true, firstDir: 1, get: (r) => r._i,
+      cell: (r) => (multiPos ? `${esc(r.pos)}${r.posRank}` : r.posRank), cls: () => "tier-cell" },
+    { id: "name", label: "Player", get: (r) => r.name.toLowerCase(),
+      cell: (r) => `<strong>${esc(r.name)}</strong>${injuryCell(r.injury)}` },
+  ];
+  if (multiPos) cols.push({ id: "pos", label: "Pos", get: (r) => POS_ORDER.indexOf(r.pos), cell: (r) => esc(r.pos) });
+  cols.push({ id: "team", label: "Team", get: (r) => r.team, cls: () => "muted" });
+  if (view === "weekly") cols.push({ id: "opp", label: "Opp", get: (r) => r.opp || null, cls: () => "muted" });
+  cols.push({ id: "roster", label: "Roster", get: (r) => (r.status === "OWNED" ? `~${r.ownerTeamId}` : r.status),
+    cell: (r) => whoLabel(r) });
+  enabled.forEach((s) => cols.push({ id: `src-${s}`, label: SOURCE_LABELS[s], num: true, firstDir: 1,
+    get: (r) => r.src[s], cell: (r) => (r.src[s] != null ? r.src[s] : "–"),
+    cls: (r) => (r.src[s] == null ? "muted" : "") }));
+  cols.push(
+    { id: "avg", label: "Avg", num: true, firstDir: 1, get: (r) => r.avg,
+      cell: (r) => `<strong>${r.avg.toFixed(1)}</strong>` },
+    { id: "spread", label: "Sprd", num: true, title: "max − min across sources", get: (r) => r.spread, cls: () => "muted" },
+    { id: "tier", label: "Tier", num: true, firstDir: 1, get: (r) => r.tier, cell: (r) => `T${r.tier}`,
+      cls: (r) => `tier t${Math.min(r.tier, 6)}` },
+  );
+  if (showMovers(view)) {
+    cols.push({ id: "mover", label: "Δ", num: true, title: `avg rank change since ${b.meta.moversSince}`,
+      get: (r) => r.mover,
+      cell: (r) => (r.mover == null ? "·" : `${r.mover > 0 ? "▲" : r.mover < 0 ? "▼" : "–"} ${Math.abs(r.mover).toFixed(1)}`),
+      cls: (r) => (r.mover > 0 ? "up" : r.mover < 0 ? "down" : "flat") });
+  }
+  return cols;
+}
+
+function sourceToggles(avail) {
+  return avail.map((s) => `<label class="tog"><input type="checkbox" data-s="${s}"
+    ${state.enabled.has(s) ? "checked" : ""}>${SOURCE_LABELS[s]}</label>`).join("");
+}
+
+function bindSourceToggles(el, rerender) {
+  $$("input[data-s]", el).forEach((cb) => {
+    cb.onchange = () => {
+      if (cb.checked) state.enabled.add(cb.dataset.s);
+      else state.enabled.delete(cb.dataset.s);
+      rerender();
+    };
+  });
+}
+
+function renderRankings() {
+  const el = $("#view-rankings");
+  const b = state.board;
+  const view = state.rankView;
+  const f = state.rk;
+  const avail = sourcesForView(view);
+  const enabled = SOURCES.filter((s) => state.enabled.has(s) && avail.includes(s));
+  const positions = f.pos === "ALL" ? POS_ORDER : [f.pos];
+  let rows = rankRows(view, enabled, positions);
+  if (f.q) rows = rows.filter((r) => r.name.toLowerCase().includes(f.q.toLowerCase()));
+  const cols = rankCols(view, enabled, f.pos === "ALL");
+  const key = `rank-${view}`;
   el.innerHTML = `
     <div class="controls">
       <div class="tabs">${VIEWS.map((v) => `<button data-v="${v}"
         class="${v === view ? "active" : ""}">${VIEW_LABELS[v]}</button>`).join("")}</div>
-      ${avail.map((s) => `<label class="tog"><input type="checkbox" data-s="${s}"
-        ${state.enabled.has(s) ? "checked" : ""}>${SOURCE_LABELS[s]}</label>`).join("")}
+      ${posChips("rk-pos", f.pos, ["ALL", ...POS_ORDER])}
+      <input type="text" id="rk-q" placeholder="search name…" value="${esc(f.q)}">
+      <span class="muted">${rows.length} players</span>
     </div>
-    ${opts.note ? `<p class="note">${opts.note}</p>` : ""}
-    <table><thead><tr>
-      <th class="num">#</th><th>Player</th><th>Pos</th><th>Team</th>
-      ${view === "weekly" ? "<th>Opp</th>" : ""}
-      ${enabled.map((s) => `<th class="num">${SOURCE_LABELS[s]}</th>`).join("")}
-      <th class="num">Avg</th><th class="num">n</th><th class="num">Sprd</th>
-      <th class="num">Tier</th>${showMovers(view)
-        ? `<th class="num" title="avg rank change since ${esc(b.meta.moversSince)}">Δ</th>` : ""}
-    </tr></thead><tbody>${rows}</tbody></table>
+    <div class="controls">${sourceToggles(avail)}</div>
+    ${sortTable(key, cols, rows)}
     <details class="panel"><summary>Unmatched
       (${Object.values(b.unmatched).reduce((n, r) => n + r.length, 0)})</summary>
       <table><thead><tr><th>Source</th><th>Player</th><th>Pos</th><th>Team</th></tr></thead>
@@ -264,26 +407,45 @@ function renderRankings(opts = {}) {
           <td class="muted">${esc(r.team) || ""}</td></tr>`)).join("")}
       </tbody></table>
     </details>`;
+  bindSort(el, key, cols);
   $$("button[data-v]", el).forEach((btn) => {
-    btn.onclick = () => { state.rankView = btn.dataset.v; renderRankings(opts); };
+    btn.onclick = () => { state.rankView = btn.dataset.v; renderRankings(); };
   });
-  $$("input[data-s]", el).forEach((cb) => {
-    cb.onchange = () => {
-      if (cb.checked) state.enabled.add(cb.dataset.s);
-      else state.enabled.delete(cb.dataset.s);
-      renderRankings(opts);
-    };
+  $$("#rk-pos button", el).forEach((btn) => {
+    btn.onclick = () => { state.rk.pos = btn.dataset.pos; renderRankings(); };
   });
+  $("#rk-q").oninput = (e) => {
+    state.rk.q = e.target.value; renderRankings();
+    const q = $("#rk-q"); q.focus();
+    q.setSelectionRange(q.value.length, q.value.length);
+  };
+  bindSourceToggles(el, renderRankings);
 }
 
+// K and D/ST: always this week's ranks, one table per position (SPEC §7).
 function renderKD() {
-  renderRankings({
-    el: "#view-kd",
-    positions: ["K", "D/ST"],
-    note: "FFB kicker/D rows are per-analyst page ranks (those pages carry no " +
-          "projections); Harris and FantasyPros add positional ranks and, for " +
-          "FantasyPros, this week's opponent.",
-  });
+  const el = $("#view-kd");
+  const avail = sourcesForView("weekly");
+  const enabled = SOURCES.filter((s) => state.enabled.has(s) && avail.includes(s));
+  const cols = rankCols("weekly", enabled, false);
+  const block = (pos, label) => {
+    const rows = rankRows("weekly", enabled, [pos]);
+    const best = rows.find((r) => r.status === "FA" || r.status === "WAIVERS");
+    const mine = rows.find((r) => r.ownerTeamId === state.board.meta.myTeamId);
+    const line = best
+      ? `Best available: <strong>${esc(best.name)}</strong> (${pos}${best.posRank}, avg ${best.avg.toFixed(1)})` +
+        (mine ? ` vs yours: <strong>${esc(mine.name)}</strong> (${pos}${mine.posRank}, avg ${mine.avg.toFixed(1)})` : "")
+      : "No ranked free agent.";
+    return `<h2 class="lb-h">${label}</h2><p class="note">${line}</p>
+      ${sortTable(`kd-${pos}`, cols, rows, { compact: true })}`;
+  };
+  el.innerHTML = `
+    <div class="controls">${sourceToggles(avail)}</div>
+    <p class="note">This week's ranks. FFB kicker/D rows are per-analyst page ranks
+      (those pages carry no projections).</p>
+    ${block("K", "Kickers")}${block("D/ST", "Defenses")}`;
+  ["K", "D/ST"].forEach((pos) => bindSort(el, `kd-${pos}`, cols));
+  bindSourceToggles(el, renderKD);
 }
 
 /* ---------------- my team ---------------- */
@@ -303,19 +465,23 @@ function renderTeam() {
   const others = mine.filter((p) => ![...slotIds, 20, 21]
     .includes(p.lineupSlotId));
 
-  const row = (p, showOpp) => {
-    const opp = (b.weekInfo[p.pid] && showOpp) || null;
-    return `<tr>
-      <td class="slot-label">${showOpp ? "" : ""}</td>
-      <td><strong>${esc(p.name)}</strong></td>
+  // Consensus avg positional rank per view, over the enabled sources.
+  const cons = {};
+  VIEWS.forEach((v) => {
+    const en = sourcesForView(v).filter((s2) => state.enabled.has(s2));
+    cons[v] = consensus(b.ranks[v] || {}, en);
+  });
+  const rk = (v, p) => (cons[v][p.pid]
+    ? `${esc(p.pos)}${cons[v][p.pid].avg.toFixed(1)}` : `<span class="muted">–</span>`);
+  const row = (p, label) => `<tr>
+      <td class="slot-label">${esc(label)}</td>
+      <td><strong>${esc(p.name)}</strong>${injuryCell(p.injury)}</td>
       <td>${esc(p.pos)}</td>
       <td class="muted">${esc(p.team) || ""}</td>
-      ${showOpp ? `<td class="muted">${esc(opp ? opp.opponent : "")}</td>` : ""}
-      <td class="muted">${p.bye ? `bye ${p.bye}` : ""}</td>
-      <td class="muted">${p.injury && p.injury !== "ACTIVE"
-        ? esc(p.injury.replace(/_/g, " ")) : ""}</td>
+      <td class="muted">${esc(fmtOpp(b.weekInfo[p.pid] && b.weekInfo[p.pid].opponent))}</td>
+      <td class="num muted">${p.bye || ""}</td>
+      ${VIEWS.map((v) => `<td class="num">${rk(v, p)}</td>`).join("")}
     </tr>`;
-  };
 
   const ups = b.recommendations.upgrades.slice(0, 5);
   const drops = b.recommendations.drops.slice(0, 5);
@@ -325,21 +491,21 @@ function renderTeam() {
     <div class="controls">
       <span class="muted">Roster, week ${b.meta.currentWeek || "?"}</span>
     </div>
-    <table><thead><tr><th></th><th>Player</th><th>Pos</th><th>Team</th>
-      <th>Opp</th><th>Bye</th><th>Injury</th></tr></thead><tbody>
-      ${starters.map(([sid, ps]) => ps.map((p) =>
-        row(p, true).replace('<td class="slot-label"></td>',
-          `<td class="slot-label">${SLOTS[sid] || sid}</td>`))).join("")}
-      ${bench.map((p) => row(p, false)
-        .replace('<td class="slot-label"></td>', `<td class="slot-label">Bench</td>`))
-        .join("")}
-      ${ir.map((p) => row(p, false)
-        .replace('<td class="slot-label"></td>', `<td class="slot-label">IR</td>`))
-        .join("")}
-      ${others.map((p) => row(p, false)
-        .replace('<td class="slot-label"></td>', `<td class="slot-label">${esc(p.lineupSlotId)}</td>`))
-        .join("")}
-    </tbody></table>
+    <div class="tbl-wrap"><table><thead><tr><th>Slot</th><th>Player</th><th>Pos</th>
+      <th>Team</th><th>Opp</th><th class="num">Bye</th>
+      ${VIEWS.map((v) => `<th class="num" title="consensus avg positional rank">${VIEW_LABELS[v]}</th>`).join("")}
+    </tr></thead><tbody>
+      ${starters.map(([sid, ps]) => {
+        const want = Number((b.meta.lineupSlotCounts || {})[sid] || 0);
+        const empty = Array.from({ length: Math.max(0, want - ps.length) }, () =>
+          `<tr><td class="slot-label">${SLOTS[sid] || sid}</td>
+            <td colspan="${5 + VIEWS.length}" class="down"><strong>Empty slot</strong></td></tr>`);
+        return ps.map((p) => row(p, SLOTS[sid] || sid)).join("") + empty.join("");
+      }).join("")}
+      ${bench.map((p) => row(p, "Bench")).join("")}
+      ${ir.map((p) => row(p, "IR")).join("")}
+      ${others.map((p) => row(p, p.lineupSlotId)).join("")}
+    </tbody></table></div>
 
     <div class="rec-card"><h3>Upgrades to consider</h3>
       ${ups.length ? ups.map((u) => `<div class="rec-line">
@@ -392,6 +558,22 @@ function whoMatches(p, who) {
   return p.status === "OWNED" && p.ownerTeamId !== state.board.meta.myTeamId;
 }
 
+const SD_COLS = [
+  { id: "name", label: "Player", get: (r) => r.name.toLowerCase(),
+    cell: (r) => `<strong>${esc(r.name)}</strong>${injuryCell(r.injury)}` },
+  { id: "pos", label: "Pos", get: (r) => POS_ORDER.indexOf(r.pos), cell: (r) => esc(r.pos) },
+  { id: "team", label: "Team", get: (r) => r.team, cls: () => "muted" },
+  { id: "roster", label: "Roster", get: (r) => (r.status === "OWNED" ? `~${r.ownerTeamId}` : r.status),
+    cell: (r) => whoLabel(r) },
+  { id: "pre", label: "Pre-draft", num: true, firstDir: 1, get: (r) => r.pre,
+    cell: (r) => (r.pre != null ? `${esc(r.pos)}${r.pre}` : "–") },
+  { id: "now", label: "Now", num: true, firstDir: 1, get: (r) => r.now,
+    cell: (r) => (r.now != null ? `${esc(r.pos)}${r.now}` : "–") },
+  { id: "change", label: "Change", num: true, get: (r) => r.change,
+    cell: (r) => (r.change == null ? "" : `${r.change > 0 ? "▲" : "▼"} ${Math.abs(r.change)}`),
+    cls: (r) => (r.change > 0 ? "up" : r.change < 0 ? "down" : "flat") },
+];
+
 function renderSinceDraft(lb) {
   const b = state.board;
   const f = state.lb;
@@ -417,21 +599,7 @@ function renderSinceDraft(lb) {
     </div>
     <p class="note">Avg positional rank. Pre-draft: ${lb.preSources.map(srcLabel).join(" + ")}
       (PPR, early Sept). Now: rest of season, ${esc(rosSrc)}.</p>
-    <table><thead><tr><th>Player</th><th>Pos</th><th>Team</th><th>Roster</th>
-      <th class="num">Pre-draft</th><th class="num">Now</th><th class="num">Change</th>
-    </tr></thead><tbody>
-      ${list.slice(0, 60).map((r) => `<tr>
-        <td><strong>${esc(r.p.name)}</strong>${r.p.injury && r.p.injury !== "ACTIVE"
-          ? `<span class="badge ${esc(r.p.injury)}">${esc(r.p.injury.replace(/_/g, " "))}</span>` : ""}</td>
-        <td>${esc(r.p.pos)}</td><td class="muted">${esc(r.p.team) || ""}</td>
-        <td>${whoLabel(r.p)}</td>
-        <td class="num">${r.pre != null ? `${esc(r.p.pos)}${r.pre}` : "–"}</td>
-        <td class="num">${r.now != null ? `${esc(r.p.pos)}${r.now}` : "–"}</td>
-        <td class="num ${r.change > 0 ? "up" : r.change < 0 ? "down" : "flat"}">${r.change == null ? ""
-          : `${r.change > 0 ? "▲" : "▼"} ${Math.abs(r.change)}`}</td>
-      </tr>`).join("")}
-    </tbody></table>
-    ${list.length > 60 ? `<p class="note">Showing 60 of ${list.length}.</p>` : ""}`;
+    ${sortTable(`sd-${f.tab}`, SD_COLS, list.map((r) => ({ ...r.p, pid: r.pid, pre: r.pre, now: r.now, change: r.change })), { limit: 60 })}`;
 }
 
 function renderWeekAccuracy(lb) {
@@ -451,12 +619,23 @@ function renderWeekAccuracy(lb) {
   });
   const players = wk.players.filter((p) => p.pos === f.wpos);
   const missCell = (rank, finish) => {
-    if (rank == null) return `<td class="num muted">–</td>`;
+    if (rank == null) return `<span class="muted">–</span>`;
     const miss = rank - finish;   // > 0: finished better than ranked
     const cls = Math.abs(miss) <= 3 ? "flat" : miss > 0 ? "up" : "down";
-    return `<td class="num">${rank} <span class="${cls}" style="font-size:11px">${
-      miss === 0 ? "✓" : (miss > 0 ? "+" : "") + miss}</span></td>`;
+    return `${rank} <span class="${cls}" style="font-size:11px">${
+      miss === 0 ? "✓" : (miss > 0 ? "+" : "") + miss}</span>`;
   };
+  const wkCols = [
+    { id: "finish", label: "Finish", num: true, firstDir: 1, get: (r) => r.finish, cls: () => "tier-cell" },
+    { id: "name", label: "Player", get: (r) => r.name.toLowerCase(),
+      cell: (r) => `<strong>${esc(r.name)}</strong> <span class="muted">${esc(r.team) || ""}</span>` },
+    { id: "roster", label: "Roster", get: (r) => (r.status === "OWNED" ? `~${r.ownerTeamId}` : r.status),
+      cell: (r) => whoLabel(r) },
+    { id: "pts", label: "Pts", num: true, get: (r) => r.pts, cell: (r) => r.pts.toFixed(1) },
+    ...srcs.map((s2) => ({ id: `src-${s2}`, label: srcLabel(s2), num: true, firstDir: 1,
+      get: (r) => r.ranks[s2], cell: (r) => missCell(r.ranks[s2], r.finish) })),
+  ];
+  f.wkCols = wkCols;
   return `
     <h2 class="lb-h">Week ${esc(f.week)}: who ranked it best</h2>
     ${weeks.length > 1 ? `<div class="controls"><select id="lb-week">${weeks.map((w) =>
@@ -465,7 +644,7 @@ function renderWeekAccuracy(lb) {
       <strong>Hits</strong>: of its top k, how many finished top k (k = starters league-wide).
       <strong>Corr</strong>: rank correlation with the actual finish (1 = perfect, 0 = coin flip).
       <strong>Avg miss</strong>: mean |rank − finish| over everyone it ranked.</p>
-    <table class="lb-sum"><thead><tr><th>Pos</th>
+    <div class="tbl-wrap"><table class="lb-sum"><thead><tr><th>Pos</th>
       ${srcs.map((s) => `<th class="num">${srcLabel(s)} hits</th><th class="num">Corr</th><th class="num">Avg miss</th>`).join("")}
     </tr></thead><tbody>
       ${positions.map((pos) => `<tr><td><strong>${pos}</strong></td>${srcs.map((s) => {
@@ -476,25 +655,14 @@ function renderWeekAccuracy(lb) {
           <td class="num">${r.rho != null ? r.rho.toFixed(2) : "–"}</td>
           <td class="num muted">${r.mae.toFixed(1)} <span style="font-size:11px">(n ${r.n})</span></td>`;
       }).join("")}</tr>`).join("")}
-    </tbody></table>
+    </tbody></table></div>
 
     <div class="controls" style="margin-top:14px">
       <div class="tabs">${positions.map((p) =>
         `<button data-lbp="${p}" class="${p === f.wpos ? "active" : ""}">${p}</button>`).join("")}</div>
       <span class="muted">sorted by actual finish · +N = beat its rank by N</span>
     </div>
-    <table><thead><tr><th class="num">Finish</th><th>Player</th><th>Roster</th>
-      <th class="num">Pts</th>${srcs.map((s) => `<th class="num">${srcLabel(s)}</th>`).join("")}
-    </tr></thead><tbody>
-      ${players.map((r) => {
-        const p = b.players[r.espnId] || { name: `#${r.espnId}`, status: "FA" };
-        return `<tr><td class="num tier-cell">${r.finish}</td>
-          <td><strong>${esc(p.name)}</strong> <span class="muted">${esc(p.team) || ""}</span></td>
-          <td>${whoLabel(p)}</td>
-          <td class="num">${r.pts.toFixed(1)}</td>
-          ${srcs.map((s) => missCell(r.ranks[s], r.finish)).join("")}</tr>`;
-      }).join("")}
-    </tbody></table>`;
+    ${sortTable(`wk-${f.week}-${f.wpos}`, wkCols, players.map((r) => ({ ...(b.players[r.espnId] || { name: `#${r.espnId}`, status: "FA" }), ...r })))}`;
 }
 
 function renderLookback() {
@@ -506,6 +674,9 @@ function renderLookback() {
     return;
   }
   el.innerHTML = renderSinceDraft(lb) + renderWeekAccuracy(lb);
+  bindSort(el, `sd-${state.lb.tab}`, SD_COLS);
+  const wsort = $(".tbl-wrap[data-key^='wk-']", el);
+  if (wsort) bindSort(el, wsort.dataset.key, state.lb.wkCols);
   $$("button[data-lbt]", el).forEach((btn) => {
     btn.onclick = () => { state.lb.tab = btn.dataset.lbt; renderLookback(); };
   });
