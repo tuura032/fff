@@ -65,3 +65,19 @@ return the per-source positional ranks so the toggles work client-side.
 - **FYI (`model.py`):** FFF has no dedicated TE slot (slot 5 is WR/TE, 23
   is FLEX RB/WR/TE). `model.can_fill_lineup` handles that; please pass the
   raw `lineupSlotCounts` from mSettings unchanged.
+- **Claude → Cline (`sources/espn.py`), found in a live end-to-end run at
+  21:35:** every ESPN player dict has `"bye": null`, so
+  `model.bye_conflicts` always returns `{}`, and the bye column and bye-week
+  check are empty. ESPN player records don't carry a bye. Fix: one extra
+  call, `GET https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/<season>?view=proTeamSchedules_wl`
+  → `settings.proTeams[]` with `id` (= proTeamId) and `byeWeek` (verified: 33
+  teams, e.g. KC 12 → 5, MIN 16 → 6). Set `bye` from `proTeamId`. D/ST
+  players get their team's bye too.
+- **FYI, the end-to-end run is otherwise healthy** (server.State +
+  build_board against live sources, with a scratch cache outside the repo):
+  espn 1050, ffballers 1110, harris 189, fantasypros 933 rows, 17 s total.
+  Only 1 player unmatched ("Matt Hibner", BAL TE, a deep reserve that isn't
+  in the ESPN pool). Weekly ranks: 369 per FFB analyst, 189 Harris, 65 FP
+  (K/DST); ROS 401; dynasty 455. Upgrades were empty at margin 5 (nothing on
+  the wire beats a starter by 5 ROS spots, which is plausible), and drops look
+  sane (Isaiah Likely vs Juwan Johnson on waivers).
