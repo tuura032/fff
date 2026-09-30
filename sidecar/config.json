@@ -1,0 +1,28 @@
+{
+  "leagueId": "877873",
+  "season": 2026,
+  "myTeamId": 1,
+  "cacheTtlMinutes": 60,
+  "upgradeMargin": 5,
+  "fantasyprosDelaySec": 5,
+  "port": 8765,
+  "aliases": {},
+  "urls": {
+    "espn": "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/{season}/segments/0/leagues/{leagueId}",
+    "espnProTeams": "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/{season}",
+    "ffballers": "https://www.thefantasyfootballers.com/{season}-{pos}-rankings/",
+    "harris": {
+      "qb": "https://www.harrisfootball.com/ranks",
+      "rb": "https://www.harrisfootball.com/rb-ranks",
+      "wr": "https://www.harrisfootball.com/wr-ranks",
+      "te": "https://www.harrisfootball.com/te-ranks",
+      "def": "https://www.harrisfootball.com/def-ranks"
+    },
+    "fantasypros": {
+      "ros": "https://www.fantasypros.com/nfl/rankings/ros-half-point-ppr-overall.php",
+      "dynasty": "https://www.fantasypros.com/nfl/rankings/dynasty-overall.php",
+      "k": "https://www.fantasypros.com/nfl/rankings/k.php",
+      "dst": "https://www.fantasypros.com/nfl/rankings/dst.php"
+    }
+  }
+}

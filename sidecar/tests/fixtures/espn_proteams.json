@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "proTeams": [
+      {"id": 6, "name": "Dallas Cowboys", "byeWeek": 9},
+      {"id": 34, "name": "Jacksonville Jaguars", "byeWeek": 11},
+      {"id": 8, "name": "Detroit Lions", "byeWeek": 12},
+      {"id": 15, "name": "Miami Dolphins", "byeWeek": 10},
+      {"id": 4, "name": "Arizona Cardinals", "byeWeek": 8}
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "status": {"currentMatchupPeriod": 4},
+  "settings": {
+    "scoringSettings": {
+      "scoringItems": [
+        {"statId": 5, "points": 0.2},
+        {"statId": 53, "points": 1.0, "pointsOverrides": {"16": 0.5}},
+        {"statId": 25, "points": 6.0}
+      ]
+    },
+    "rosterSettings": {
+      "lineupSlotCounts": {"0": 1, "2": 2, "4": 2, "5": 1, "16": 1,
+                           "17": 1, "20": 5, "21": 1, "23": 1}
+    }
+  },
+  "teams": [
+    {"id": 1, "name": "Test One", "abbrev": "T1", "roster": {"entries": [
+      {"lineupSlotId": 0, "playerPoolEntry": {"player": {
+        "id": 100, "fullName": "Dak Prescott", "defaultPositionId": 1,
+        "proTeamId": 6, "injuryStatus": "ACTIVE"}}},
+      {"lineupSlotId": 17, "playerPoolEntry": {"player": {
+        "id": 101, "fullName": "Ka'imi Fairbairn", "defaultPositionId": 5,
+        "proTeamId": 34, "injuryStatus": "ACTIVE"}}},
+      {"lineupSlotId": 16, "playerPoolEntry": {"player": {
+        "id": 102, "fullName": "Cowboys D/ST", "defaultPositionId": 16,
+        "proTeamId": 6, "injuryStatus": "ACTIVE"}}}
+    ]}},
+    {"id": 2, "name": "Test Two", "abbrev": "T2", "roster": {"entries": [
+      {"lineupSlotId": 2, "playerPoolEntry": {"player": {
+        "id": 103, "fullName": "Jahmyr Gibbs", "defaultPositionId": 2,
+        "proTeamId": 8, "injuryStatus": "ACTIVE"}}}
+    ]}}
+  ]
+}

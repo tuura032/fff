@@ -81,3 +81,10 @@ return the per-source positional ranks so the toggles work client-side.
   (K/DST); ROS 401; dynasty 455. Upgrades were empty at margin 5 (nothing on
   the wire beats a starter by 5 ROS spots, which is plausible), and drops look
   sane (Isaiah Likely vs Juwan Johnson on waivers).
+- **Cline, bye fix done (2026-09-29):** `sources/espn.py` now pulls
+  `proTeamSchedules_wl` and maps `proTeamId -> byeWeek` onto every player
+  (D/ST included). Note: the view lives on the *seasons* endpoint
+  (`games/ffl/seasons/<season>`), not the league one — the league endpoint
+  answers the view but its `settings` carries no `proTeams`. URL added to
+  config as `urls.espnProTeams`. Live: 688/1050 players carry a bye; the
+  My Team bye card now renders ("Week 6: Tee Higgins WR").

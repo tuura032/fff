@@ -1,0 +1,13 @@
+{
+  "players": [
+    {"id": 200, "status": "WAIVERS", "player": {
+      "id": 200, "fullName": "De'Von Achane", "defaultPositionId": 2,
+      "proTeamId": 15,
+      "injuryStatus": "INJURY_RESERVE",
+      "ownership": {"percentOwned": 88.07}}},
+    {"id": 201, "status": "FREEAGENT", "player": {
+      "id": 201, "fullName": "Some Free Agent", "defaultPositionId": 3,
+      "proTeamId": 4,
+      "injuryStatus": "NORMAL"}}
+  ]
+}
