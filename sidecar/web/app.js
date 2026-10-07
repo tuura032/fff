@@ -25,7 +25,7 @@ const state = {
   enabled: new Set(SOURCES),
   wa: { pos: "ALL", status: "ALL", minPct: 0, q: "" },
   lb: { tab: "risers", pos: "ALL", who: "ALL", week: null, wpos: "QB" },
-  rk: { pos: "ALL", q: "" },
+  rk: { pos: "ALL", q: "", avail: true },  // avail: only FA + waiver players (the Waivers tab's set), still in rank order
   sort: {},          // per-table { col, dir } — survives view switches
   statusTimer: null,
 };
@@ -385,6 +385,8 @@ function renderRankings() {
   const enabled = SOURCES.filter((s) => state.enabled.has(s) && avail.includes(s));
   const positions = f.pos === "ALL" ? POS_ORDER : [f.pos];
   let rows = rankRows(view, enabled, positions);
+  // Ranks (Rk, tiers) stay computed over everyone, so "RB34" still means the 34th RB overall.
+  if (f.avail) rows = rows.filter((r) => r.status === "FA" || r.status === "WAIVERS");
   if (f.q) rows = rows.filter((r) => r.name.toLowerCase().includes(f.q.toLowerCase()));
   const cols = rankCols(view, enabled, f.pos === "ALL");
   const key = `rank-${view}`;
@@ -394,6 +396,8 @@ function renderRankings() {
         class="${v === view ? "active" : ""}">${VIEW_LABELS[v]}</button>`).join("")}</div>
       ${posChips("rk-pos", f.pos, ["ALL", ...POS_ORDER])}
       <input type="text" id="rk-q" placeholder="search name…" value="${esc(f.q)}">
+      <label class="tog" title="Hide rostered players: show only free agents and waivers, in rank order">
+        <input type="checkbox" id="rk-avail" ${f.avail ? "checked" : ""}>Available only (FA + waivers)</label>
       <span class="muted">${rows.length} players</span>
     </div>
     <div class="controls">${sourceToggles(avail)}</div>
@@ -414,6 +418,7 @@ function renderRankings() {
   $$("#rk-pos button", el).forEach((btn) => {
     btn.onclick = () => { state.rk.pos = btn.dataset.pos; renderRankings(); };
   });
+  $("#rk-avail").onchange = (e) => { state.rk.avail = e.target.checked; renderRankings(); };
   $("#rk-q").oninput = (e) => {
     state.rk.q = e.target.value; renderRankings();
     const q = $("#rk-q"); q.focus();
