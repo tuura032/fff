@@ -660,8 +660,8 @@
 
 <h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Weekly scores</h2>
 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-  Each week's score against that week's top-half line (dashed). The dual
-  points are under the chart: 2 for a win and a top-half finish, 1 for either
+  Each week's score against the score it had to beat for a top-half finish
+  (dashed). The dual points are under the chart: 2 for a win and a top-half finish, 1 for either
   alone, 0 for neither.
 </p>
 <div class="mt-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -763,6 +763,7 @@
         <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Score</th>
         <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opp</th>
         <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Result</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400" title="The score this team had to beat for a top-half point: the 7th-best score in weeks it made the top half, the 6th-best in weeks it didn't">To beat</th>
         <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Top half</th>
         <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Dual</th>
       </tr>
@@ -777,7 +778,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">142.8</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">133.0</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">112.8</td>
+        
+        
         <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        
         <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
       </tr>
       
@@ -789,7 +794,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">83.2</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">100.2</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">120.6</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 37.4">−37.4</td>
+        
         <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
       </tr>
       
@@ -801,7 +810,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">80.2</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">110.1</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">131.5</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 51.3">−51.3</td>
+        
         <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
       </tr>
       
@@ -813,7 +826,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">46.0</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">128.1</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">112.1</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 66.1">−66.1</td>
+        
         <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
       </tr>
       
@@ -825,7 +842,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">100.9</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">83.0</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">105.3</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 4.4">−4.4</td>
+        
         <td class="px-3 py-2 text-right font-bold text-amber-600 dark:text-amber-400">1</td>
       </tr>
       
@@ -837,7 +858,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">78.9</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">120.1</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">105.7</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 26.8">−26.8</td>
+        
         <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
       </tr>
       
@@ -849,7 +874,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">88.3</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">102.6</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">97.5</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 9.2">−9.2</td>
+        
         <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
       </tr>
       
@@ -861,7 +890,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">62.8</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">84.5</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">86.8</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 24.0">−24.0</td>
+        
         <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
       </tr>
       
@@ -873,7 +906,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">90.4</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">119.3</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">99.8</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 9.4">−9.4</td>
+        
         <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
       </tr>
       
@@ -885,7 +922,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">110.9</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">50.4</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">97.6</td>
+        
+        
         <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        
         <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
       </tr>
       
@@ -897,7 +938,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">93.7</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">83.2</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">108.4</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 14.7">−14.7</td>
+        
         <td class="px-3 py-2 text-right font-bold text-amber-600 dark:text-amber-400">1</td>
       </tr>
       
@@ -909,7 +954,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap font-semibold text-slate-900 dark:text-white">100.8</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">76.9</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-emerald-100 px-2 py-0.5 text-center text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">W</span></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">100.0</td>
+        
+        
         <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        
         <td class="px-3 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">2</td>
       </tr>
       
@@ -921,7 +970,11 @@
         <td class="px-3 py-2 text-right whitespace-nowrap text-slate-500 dark:text-slate-400">62.5</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">156.4</td>
         <td class="px-3 py-2 text-center"><span class="inline-block min-w-[2rem] rounded bg-rose-100 px-2 py-0.5 text-center text-xs font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">L</span></td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400"></td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">97.1</td>
+        
+        
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by 34.6">−34.6</td>
+        
         <td class="px-3 py-2 text-right font-bold text-rose-500 dark:text-rose-400">0</td>
       </tr>
       
@@ -1134,35 +1187,35 @@
     
     labels.push("Wk 2");
     scores.push(83.2);
-    lines.push(119.8);
+    lines.push(120.6);
     
     labels.push("Wk 3");
     scores.push(80.2);
-    lines.push(118.1);
+    lines.push(131.5);
     
     labels.push("Wk 4");
     scores.push(46.0);
-    lines.push(110.4);
+    lines.push(112.1);
     
     labels.push("Wk 5");
     scores.push(100.9);
-    lines.push(100.9);
+    lines.push(105.3);
     
     labels.push("Wk 6");
     scores.push(78.9);
-    lines.push(95.8);
+    lines.push(105.7);
     
     labels.push("Wk 7");
     scores.push(88.3);
-    lines.push(89.7);
+    lines.push(97.5);
     
     labels.push("Wk 8");
     scores.push(62.8);
-    lines.push(84.5);
+    lines.push(86.8);
     
     labels.push("Wk 9");
     scores.push(90.4);
-    lines.push(98.3);
+    lines.push(99.8);
     
     labels.push("Wk 10");
     scores.push(110.9);
@@ -1170,7 +1223,7 @@
     
     labels.push("Wk 11");
     scores.push(93.7);
-    lines.push(106.4);
+    lines.push(108.4);
     
     labels.push("Wk 12");
     scores.push(100.8);
@@ -1178,7 +1231,7 @@
     
     labels.push("Wk 13");
     scores.push(62.5);
-    lines.push(86.1);
+    lines.push(97.1);
     
     var data = {
       labels: labels,

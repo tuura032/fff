@@ -165,6 +165,24 @@ def score_to_beat(scores):
     return sorted(scores)[n // 2 - 1]
 
 
+def team_score_to_beat(own_id, week_teams):
+    """The score one team had to top to earn the week's top-half point.
+
+    The league line (score_to_beat) is the highest score that missed, so a
+    team that finished just below the cut *is* the line: its own score. For
+    that team the useful number is the score it had to pass, the lowest one
+    that made the top half. This is score_to_beat with the team's own score
+    pushed to the top: the line from the other teams' scores, so it equals
+    the league line in weeks the team made it and the last score in when it
+    didn't. Same strict rule: topHalf == (score > this).
+    """
+    others = sorted(t["score"] for t in week_teams if t["teamId"] != own_id)
+    n = len(others) + 1
+    if n < 2:
+        raise ValueError(f"team_score_to_beat needs at least 2 scores, got {n}")
+    return others[n // 2 - 1]
+
+
 def _played(matchup):
     """True if a schedule entry is a decided game with both sides scored.
 
@@ -1514,8 +1532,9 @@ def build_team_season(season, team_id):
     stale link. Otherwise a dict with:
 
     - `weeks`: one entry per regular-season week the team played: its score,
-      that week's score-to-beat line, the dual-point split, and the matchup
-      result. Regular season only -- dual points don't count anywhere else,
+      that week's score-to-beat line, the score this team had to top
+      (`teamScoreToBeat`, see team_score_to_beat), the dual-point split, and
+      the matchup result. Regular season only -- dual points don't count anywhere else,
       and the schedule table the page renders from this must stay clean of
       playoff games.
     - `postseason`: the team's playoff/consolation games from the season's
@@ -1556,6 +1575,7 @@ def build_team_season(season, team_id):
             "week": w["week"],
             "score": t["score"],
             "scoreToBeat": w["scoreToBeat"],
+            "teamScoreToBeat": round(team_score_to_beat(team_id, w["teams"]), 1),
             "topHalf": t["topHalf"],
             "h2hPoint": t["h2h"],
             "weekPoints": t["weekPoints"],

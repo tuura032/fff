@@ -38,8 +38,8 @@
 
 <h2 class="mt-8 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Weekly scores</h2>
 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-  Each week's score against that week's top-half line (dashed). The dual
-  points are under the chart: 2 for a win and a top-half finish, 1 for either
+  Each week's score against the score it had to beat for a top-half finish
+  (dashed). The dual points are under the chart: 2 for a win and a top-half finish, 1 for either
   alone, 0 for neither.
 </p>
 <div class="mt-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -72,6 +72,7 @@
         <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Score</th>
         <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Opp</th>
         <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Result</th>
+        <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400" title="The score this team had to beat for a top-half point: the 7th-best score in weeks it made the top half, the 6th-best in weeks it didn't">To beat</th>
         <th class="px-3 py-2 text-center text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Top half</th>
         <th class="px-3 py-2 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Dual</th>
       </tr>
@@ -86,7 +87,13 @@
         <td class="px-3 py-2 text-right whitespace-nowrap {{ 'font-semibold text-slate-900 dark:text-white' if w.result == 'W' else 'text-slate-500 dark:text-slate-400' }}">{{ w.score }}</td>
         <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">{{ w.opponentScore }}</td>
         <td class="px-3 py-2 text-center">{{ result_chip(w.result) }}</td>
-        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">{{ '✓' if w.topHalf else '' }}</td>
+        <td class="px-3 py-2 text-right text-slate-500 dark:text-slate-400">{{ w.teamScoreToBeat }}</td>
+        {% set short_by = w.teamScoreToBeat - w.score %}
+        {% if w.topHalf %}
+        <td class="px-3 py-2 text-center text-emerald-600 dark:text-emerald-400">✓</td>
+        {% else %}
+        <td class="px-3 py-2 text-center whitespace-nowrap text-rose-500 dark:text-rose-400" title="Missed the top half by {{ '%.1f' | format(short_by) }}">{{ 'tied' if short_by < 0.05 else '−%.1f' | format(short_by) }}</td>
+        {% endif %}
         <td class="px-3 py-2 text-right font-bold {{
           'text-emerald-600 dark:text-emerald-400' if w.weekPoints == 2 else
           ('text-amber-600 dark:text-amber-400' if w.weekPoints == 1 else
@@ -182,7 +189,7 @@
     {% for w in team_data.weeks %}
     labels.push("Wk {{ w.week }}");
     scores.push({{ w.score }});
-    lines.push({{ w.scoreToBeat }});
+    lines.push({{ w.teamScoreToBeat }});
     {% endfor %}
     var data = {
       labels: labels,

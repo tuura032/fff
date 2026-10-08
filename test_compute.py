@@ -127,6 +127,20 @@ class TestNormalWeek(unittest.TestCase):
         top_half = {t["teamId"] for t in self.week["teams"] if t["topHalf"]}
         self.assertEqual(top_half, {1, 3, 5, 6, 7, 10})
 
+    def test_team_line_for_the_first_team_out_is_the_last_team_in(self):
+        # Team 12 (118) is 7th, so the league line is its own score; the
+        # score it had to top was team 6's 120.
+        self.assertEqual(compute.team_score_to_beat(12, self.week["teams"]), 120)
+
+    def test_team_line_for_a_top_half_team_is_the_league_line(self):
+        self.assertEqual(compute.team_score_to_beat(1, self.week["teams"]), 118)
+
+    def test_team_line_agrees_with_top_half_for_every_team(self):
+        for t in self.week["teams"]:
+            line = compute.team_score_to_beat(t["teamId"], self.week["teams"])
+            self.assertEqual(t["topHalf"], 1 if t["score"] > line else 0,
+                             f"team {t['teamId']}")
+
     def test_week_points(self):
         expected = {1: 2, 2: 0, 3: 2, 4: 0, 5: 2, 6: 1,
                     7: 2, 8: 0, 9: 0, 10: 2, 11: 0, 12: 1}
@@ -192,6 +206,11 @@ class TestTopHalfBoundaryTie(unittest.TestCase):
         self.assertEqual(by_id[7]["score"], 100)
         self.assertEqual(by_id[6]["topHalf"], 0)
         self.assertEqual(by_id[7]["topHalf"], 0)
+
+    def test_team_line_for_the_tied_pair_is_the_tied_score(self):
+        for tid in (6, 7):
+            self.assertEqual(
+                compute.team_score_to_beat(tid, self.week["teams"]), 100)
 
     def test_only_five_top_half_points_awarded(self):
         self.assertEqual(sum(t["topHalf"] for t in self.week["teams"]), 5)
@@ -2005,6 +2024,8 @@ class TestTeamSeason(unittest.TestCase):
         first = d["weeks"][0]
         self.assertEqual(first["score"], 110)
         self.assertEqual(first["scoreToBeat"], 115)
+        # Missed the top half, so its own line is the lowest score that made it.
+        self.assertEqual(first["teamScoreToBeat"], 116)
         self.assertEqual(first["result"], "L")
         self.assertEqual(first["weekPoints"], 0)
         self.assertEqual(first["opponentId"], 2)
