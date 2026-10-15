@@ -241,6 +241,14 @@ class Handler(SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass  # local tool; keep the console quiet
 
+    def end_headers(self):
+        # Static files (app.js, app.css) must be revalidated on every load: without this, Chrome
+        # guesses a freshness window from Last-Modified and keeps serving an old app.js after an edit.
+        # Cheap: an unchanged file answers 304 Not Modified.
+        if not any(h.lower().startswith(b"cache-control:") for h in getattr(self, "_headers_buffer", [])):
+            self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
     def _json(self, obj, code=200):
         body = json.dumps(obj).encode("utf-8")
         self.send_response(code)
