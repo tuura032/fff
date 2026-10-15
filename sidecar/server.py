@@ -108,7 +108,9 @@ class State:
 def _player_view(p):
     d = {"name": p["name"], "pos": p["pos"], "team": p.get("team"),
          "injury": p.get("injury"), "bye": p.get("bye"),
-         "pctOwned": p.get("pctOwned"), "status": p["status"]}
+         "pctOwned": p.get("pctOwned"),
+         "pctOwnedChange": p.get("pctOwnedChange"),
+         "status": p["status"]}
     if p.get("ownerTeamId") is not None:
         d["ownerTeamId"] = p["ownerTeamId"]
         d["lineupSlotId"] = p.get("lineupSlotId")

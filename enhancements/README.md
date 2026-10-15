@@ -20,11 +20,13 @@ Work these in order. The ID is just a name; this list is the priority.
 Agents take the first unfinished line unless the owner names something
 else.
 
-1. **ENH-019:** `build.py --check`.
-2. **ENH-033:** the committed site check (`python tasks.py check`).
-3. **ENH-034:** FFF's league values into `leagues.json`, with no output
+1. **ENH-036:** sidecar board merge — Waivers + Rankings into one board
+   (owner-assigned).
+2. **ENH-019:** `build.py --check`.
+3. **ENH-033:** the committed site check (`python tasks.py check`).
+4. **ENH-034:** FFF's league values into `leagues.json`, with no output
    change.
-4. Then the owner picks. Multi-league (ENH-032) is blocked on a privacy
+5. Then the owner picks. Multi-league (ENH-032) is blocked on a privacy
    decision; feature items are open in any order.
 
 Update this list whenever an item ships or priorities change.

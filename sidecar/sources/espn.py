@@ -70,6 +70,7 @@ def parse(league, fa, pro, cfg, season):
                 "injury": p.get("injuryStatus"),
                 "bye": byes.get(p.get("proTeamId")),
                 "pctOwned": None,
+                "pctOwnedChange": None,
             })
 
     fa_players = fa.get("players") or []
@@ -92,6 +93,7 @@ def parse(league, fa, pro, cfg, season):
             "injury": p.get("injuryStatus"),
             "bye": byes.get(p.get("proTeamId")),
             "pctOwned": ownership.get("percentOwned"),
+            "pctOwnedChange": ownership.get("percentChange"),
         })
 
     settings = league.get("settings") or {}

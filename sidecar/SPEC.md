@@ -211,26 +211,37 @@ Base: `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/<season>/
 
 The owner's rule: general information first, advice for his team last.
 
-1. **Header:** view switcher (Weekly · Rest of season · Dynasty), the source
-   toggles for the current view (checkboxes; all on by default; saved in
-   `localStorage`), the status line (§4), and a Refresh button.
-2. **Waiver wire:** only free agents and waiver players in FFF.
-   - Sorted by consensus for the current view. Position filter chips (All,
-     QB, RB, WR, TE, FLEX).
-   - Columns: player, position, NFL team, bye, injury, % owned, FA/waivers,
-     consensus, each enabled source's rank, spread, tier and movers.
-   - Default view: **Rest of season** (pickups are about the rest of the
-     year), and Weekly is one click away.
-   - Highlight players whose consensus beats someone on the owner's roster
-     at the same position.
-3. **Rankings:** the full table for the view, every player, with the same
-   columns plus "owned by", so it's the general-purpose board. The source
-   toggles re-rank it live in the browser from the per-source ranks the API
-   returns. Sortable, and searchable by name.
-4. **D/ST and K:** two compact weekly tables with their own toggles
+1. **Header:** tab nav (Board · K & D/ST · My Team · Look back), the source
+   toggles for the current view (checkboxes; all on by default), the status
+   line (§4), and a Refresh button.
+2. **Board** (ENH-036): one table — the old Waivers and Rankings tabs,
+   merged.
+   - **Show** segmented control: **Available** (free agents + waiver
+     players — the default; the home page answers "what can I claim right
+     now"), **Rostered** (players on the twelve rosters), **All players**.
+     A player is available or not; the FA/waiver distinction is row-level
+     status, not a filter.
+   - Ranks are per position ("RB34" = the 34th RB); tiers are within a
+     position. Position chips: **All** mixes QB/RB/WR/TE only — K and D/ST
+     ranks aren't comparable across positions and swamp a mixed list — the
+     K and D/ST chips stay for single-position views.
+   - Default sort: position **All** → Owned % descending (the only
+     cross-position signal); a single position → board rank. Header clicks
+     override.
+   - Columns: Rk (tier-coloured), Player (+injury), Pos, Team, Opp
+     (weekly), Roster/status (WA badge = on the claim list right now —
+     Wed–Sat that means dropped this week, the "just dropped" signal; FA
+     badge = free agent; rostered = owner abbreviation or "mine"), the
+     enabled sources' ranks, Avg, Sprd, Tier, Δ (change vs the last
+     snapshot, not vs the owner's roster), Owned %, Own Δ (ESPN ownership
+     change). A Columns menu toggles Team, Opp, Bye, Sprd, Tier, Δ, Owned
+     %, Own Δ; the choice persists in `localStorage` (`waiverboard.cols`).
+   - The source toggles re-rank live in the browser from the per-source
+     ranks the API returns. Sortable, and searchable by name.
+3. **D/ST and K:** two compact weekly tables with their own toggles
    (sources in §3), marking which are available. Streaming line: "Best
    available D/ST this week: X (consensus N) vs yours: Y (N)."
-5. **My team** (teamId 1), last:
+4. **My team** (teamId 1), last:
    - **Roster:** every player with weekly, ROS and dynasty consensus, and
      lineup slot, injury and bye.
    - **Upgrade suggestions:** "Add X, drop Y". Pair a free agent with the

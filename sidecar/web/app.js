@@ -18,14 +18,41 @@ const POS_ORDER = ["QB", "RB", "WR", "TE", "K", "D/ST"];
 const SLOTS = { 0: "QB", 2: "RB", 4: "WR", 5: "WR/TE", 6: "TE", 23: "FLEX",
                 17: "K", 16: "D/ST", 20: "Bench", 21: "IR" };
 
+/* ---------------- column picker (ENH-036) ---------------- */
+
+// Board column visibility. Defaults: Team, Opp, Tier, Δ and Owned % on;
+// Bye, Sprd and Own Δ off. Persists in localStorage; the storage access is
+// try/caught (private mode etc.), in which case it lives for the session.
+const COLS_KEY = "waiverboard.cols";
+const COL_DEFS = [
+  ["team", "Team"], ["opp", "Opp"], ["bye", "Bye"],
+  ["sprd", "Sprd"], ["tier", "Tier"], ["mover", "Δ"],
+  ["owned", "Owned %"], ["ownDelta", "Own Δ"],
+];
+const COL_DEFAULTS = { team: true, opp: true, bye: false, sprd: false,
+                       tier: true, mover: true, owned: true, ownDelta: false };
+
+function loadCols() {
+  try {
+    return Object.assign({}, COL_DEFAULTS,
+                         JSON.parse(localStorage.getItem(COLS_KEY) || "{}"));
+  } catch { return Object.assign({}, COL_DEFAULTS); }
+}
+
+function saveCols() {
+  try { localStorage.setItem(COLS_KEY, JSON.stringify(state.cols)); }
+  catch { /* storage unavailable */ }
+}
+
 const state = {
   board: null,
-  view: "waivers",
+  view: "rankings",
   rankView: "weekly",
   enabled: new Set(SOURCES),
-  wa: { pos: "ALL", status: "ALL", minPct: 0, q: "" },
+  rk: { pos: "ALL", q: "", show: "available" },  // show: available | rostered | all
+  cols: loadCols(),
+  colsOpen: false,  // keep the Columns menu open across a column re-render
   lb: { tab: "risers", pos: "ALL", who: "ALL", week: null, wpos: "QB" },
-  rk: { pos: "ALL", q: "", avail: true },  // avail: only FA + waiver players (the Waivers tab's set), still in rank order
   sort: {},          // per-table { col, dir } — survives view switches
   statusTimer: null,
 };
@@ -182,7 +209,7 @@ function thHTML(col, sort) {
 
 function sortTable(key, cols, rows, opts = {}) {
   rows.forEach((r, i) => { r._i = i; });
-  const sort = state.sort[key] || null;
+  const sort = (opts.sort !== undefined ? opts.sort : state.sort[key]) || null;
   const shown = applySort(rows, cols, sort).slice(0, opts.limit || Infinity);
   const body = shown.map((r) => `<tr>${cols.map((c) => {
     const cls = [c.num ? "num" : "", c.cls ? c.cls(r) || "" : ""].join(" ").trim();
@@ -241,60 +268,7 @@ function fmtOpp(o) {
 const injuryCell = (inj) => (inj && inj !== "ACTIVE"
   ? `<span class="badge ${esc(inj)}">${esc(inj.replace(/_/g, " "))}</span>` : "");
 
-/* ---------------- waivers ---------------- */
-
-const WAIVERS_COLS = [
-  { id: "name", label: "Player", get: (r) => r.name.toLowerCase(),
-    cell: (r) => `<strong>${esc(r.name)}</strong>${injuryCell(r.injury)}` },
-  { id: "pos", label: "Pos", get: (r) => POS_ORDER.indexOf(r.pos), cell: (r) => esc(r.pos) },
-  { id: "team", label: "Team", get: (r) => r.team, cls: () => "muted" },
-  { id: "bye", label: "Bye", num: true, firstDir: 1, get: (r) => r.bye },
-  { id: "status", label: "Status", get: (r) => r.status,
-    cell: (r) => `<span class="badge ${r.status}">${r.status}</span>` },
-  { id: "owned", label: "Owned %", num: true, get: (r) => r.pctOwned,
-    cell: (r) => (r.pctOwned != null ? r.pctOwned.toFixed(1) : "–") },
-];
-
-function renderWaivers() {
-  const b = state.board;
-  const el = $("#view-waivers");
-  const f = state.wa;
-  const list = Object.entries(b.players)
-    .map(([pid, p]) => ({ pid, ...p }))
-    .filter((p) => p.status === "FA" || p.status === "WAIVERS")
-    .filter((p) => f.pos === "ALL" || p.pos === f.pos)
-    .filter((p) => f.status === "ALL" || p.status === f.status)
-    .filter((p) => (p.pctOwned || 0) >= f.minPct)
-    .filter((p) => !f.q || p.name.toLowerCase().includes(f.q.toLowerCase()))
-    .sort((a, b2) => (b2.pctOwned || 0) - (a.pctOwned || 0)
-      || POS_ORDER.indexOf(a.pos) - POS_ORDER.indexOf(b2.pos)
-      || a.name.localeCompare(b2.name));
-  el.innerHTML = `
-    <div class="controls">
-      ${posChips("wa-pos", f.pos, ["ALL", ...POS_ORDER])}
-      <select id="wa-status">${[["ALL", "FA + waivers"], ["WAIVERS", "Waivers"], ["FA", "Free agents"]]
-        .map(([v, l]) => `<option value="${v}" ${f.status === v ? "selected" : ""}>${l}</option>`).join("")}</select>
-      <label class="tog">min owned %
-        <input type="number" id="wa-pct" min="0" max="100" step="5"
-               value="${f.minPct}" style="width:64px"></label>
-      <input type="text" id="wa-q" placeholder="search name…" value="${esc(f.q)}">
-      <span class="muted">${list.length} players</span>
-    </div>
-    ${sortTable("waivers", WAIVERS_COLS, list, { limit: 400, moreNote: " — narrow the filters" })}`;
-  bindSort(el, "waivers", WAIVERS_COLS);
-  $$("#wa-pos button", el).forEach((btn) => {
-    btn.onclick = () => { state.wa.pos = btn.dataset.pos; renderWaivers(); };
-  });
-  $("#wa-status").onchange = (e) => { state.wa.status = e.target.value; renderWaivers(); };
-  $("#wa-pct").onchange = (e) => { state.wa.minPct = Number(e.target.value) || 0; renderWaivers(); };
-  $("#wa-q").oninput = (e) => {
-    state.wa.q = e.target.value; renderWaivers();
-    const q = $("#wa-q"); q.focus();
-    q.setSelectionRange(q.value.length, q.value.length);
-  };
-}
-
-/* ---------------- rankings / K&D ---------------- */
+/* ---------------- board (ENH-036) / K&D ---------------- */
 
 function sourcesForView(view) {
   const ranks = state.board.ranks[view] || {};
@@ -322,6 +296,7 @@ function rankRows(view, enabled, positions) {
     return {
       pid, name: p.name, pos: p.pos, team: p.team, injury: p.injury,
       status: p.status, ownerTeamId: p.ownerTeamId,
+      bye: p.bye, pctOwned: p.pctOwned, pctOwnedChange: p.pctOwnedChange,
       opp: view === "weekly" && b.weekInfo[pid] ? fmtOpp(b.weekInfo[pid].opponent) : "",
       posRank: posRank[pid], tier: tierOf[pid], avg: c.avg, n: c.n,
       spread: c.spread, src: c.ranks, mover: (b.movers || {})[pid],
@@ -329,36 +304,45 @@ function rankRows(view, enabled, positions) {
   });
 }
 
-function rankCols(view, enabled, multiPos) {
+function rankCols(view, enabled, multiPos, cols) {
   const b = state.board;
-  const cols = [
+  const out = [
     { id: "rank", label: "Rk", num: true, firstDir: 1, get: (r) => r._i,
       cell: (r) => (multiPos ? `${esc(r.pos)}${r.posRank}` : r.posRank), cls: () => "tier-cell" },
     { id: "name", label: "Player", get: (r) => r.name.toLowerCase(),
       cell: (r) => `<strong>${esc(r.name)}</strong>${injuryCell(r.injury)}` },
   ];
-  if (multiPos) cols.push({ id: "pos", label: "Pos", get: (r) => POS_ORDER.indexOf(r.pos), cell: (r) => esc(r.pos) });
-  cols.push({ id: "team", label: "Team", get: (r) => r.team, cls: () => "muted" });
-  if (view === "weekly") cols.push({ id: "opp", label: "Opp", get: (r) => r.opp || null, cls: () => "muted" });
-  cols.push({ id: "roster", label: "Roster", get: (r) => (r.status === "OWNED" ? `~${r.ownerTeamId}` : r.status),
+  if (multiPos) out.push({ id: "pos", label: "Pos", get: (r) => POS_ORDER.indexOf(r.pos), cell: (r) => esc(r.pos) });
+  if (cols.team) out.push({ id: "team", label: "Team", get: (r) => r.team, cls: () => "muted" });
+  if (view === "weekly" && cols.opp) out.push({ id: "opp", label: "Opp", get: (r) => r.opp || null, cls: () => "muted" });
+  if (cols.bye) out.push({ id: "bye", label: "Bye", num: true, firstDir: 1, get: (r) => r.bye, cls: () => "muted" });
+  out.push({ id: "roster", label: "Roster", get: (r) => (r.status === "OWNED" ? `~${r.ownerTeamId}` : r.status),
     cell: (r) => whoLabel(r) });
-  enabled.forEach((s) => cols.push({ id: `src-${s}`, label: SOURCE_LABELS[s], num: true, firstDir: 1,
+  enabled.forEach((s) => out.push({ id: `src-${s}`, label: SOURCE_LABELS[s], num: true, firstDir: 1,
     get: (r) => r.src[s], cell: (r) => (r.src[s] != null ? r.src[s] : "–"),
     cls: (r) => (r.src[s] == null ? "muted" : "") }));
-  cols.push(
+  out.push(
     { id: "avg", label: "Avg", num: true, firstDir: 1, get: (r) => r.avg,
       cell: (r) => `<strong>${r.avg.toFixed(1)}</strong>` },
-    { id: "spread", label: "Sprd", num: true, title: "max − min across sources", get: (r) => r.spread, cls: () => "muted" },
-    { id: "tier", label: "Tier", num: true, firstDir: 1, get: (r) => r.tier, cell: (r) => `T${r.tier}`,
-      cls: (r) => `tier t${Math.min(r.tier, 6)}` },
   );
-  if (showMovers(view)) {
-    cols.push({ id: "mover", label: "Δ", num: true, title: `avg rank change since ${b.meta.moversSince}`,
+  if (cols.sprd) out.push({ id: "spread", label: "Sprd", num: true, title: "max − min across sources", get: (r) => r.spread, cls: () => "muted" });
+  if (cols.tier) out.push({ id: "tier", label: "Tier", num: true, firstDir: 1, get: (r) => r.tier, cell: (r) => `T${r.tier}`,
+    cls: (r) => `tier t${Math.min(r.tier, 6)}` });
+  if (showMovers(view) && cols.mover) {
+    out.push({ id: "mover", label: "Δ", num: true,
+      title: `avg rank change since the ${b.meta.moversSince} snapshot (not an upgrade over your roster)`,
       get: (r) => r.mover,
       cell: (r) => (r.mover == null ? "·" : `${r.mover > 0 ? "▲" : r.mover < 0 ? "▼" : "–"} ${Math.abs(r.mover).toFixed(1)}`),
       cls: (r) => (r.mover > 0 ? "up" : r.mover < 0 ? "down" : "flat") });
   }
-  return cols;
+  if (cols.owned) out.push({ id: "owned", label: "Owned %", num: true, get: (r) => r.pctOwned,
+    cell: (r) => (r.pctOwned != null ? r.pctOwned.toFixed(1) : "–") });
+  if (cols.ownDelta) out.push({ id: "ownDelta", label: "Own Δ", num: true,
+    title: "ESPN ownership % change (since yesterday)", get: (r) => r.pctOwnedChange,
+    cell: (r) => (r.pctOwnedChange != null
+      ? `${r.pctOwnedChange > 0 ? "+" : ""}${r.pctOwnedChange.toFixed(1)}` : "–"),
+    cls: () => "muted" });
+  return out;
 }
 
 function sourceToggles(avail) {
@@ -376,32 +360,49 @@ function bindSourceToggles(el, rerender) {
   });
 }
 
-function renderRankings() {
+const SHOW = [["available", "Available"], ["rostered", "Rostered"],
+              ["all", "All players"]];
+
+function renderBoard() {
   const el = $("#view-rankings");
   const b = state.board;
   const view = state.rankView;
   const f = state.rk;
   const avail = sourcesForView(view);
   const enabled = SOURCES.filter((s) => state.enabled.has(s) && avail.includes(s));
-  const positions = f.pos === "ALL" ? POS_ORDER : [f.pos];
+  // "All" mixes only the offensive positions: K and D/ST ranks aren't
+  // comparable across positions and would swamp a mixed list (ENH-036).
+  const positions = f.pos === "ALL" ? ["QB", "RB", "WR", "TE"] : [f.pos];
   let rows = rankRows(view, enabled, positions);
   // Ranks (Rk, tiers) stay computed over everyone, so "RB34" still means the 34th RB overall.
-  if (f.avail) rows = rows.filter((r) => r.status === "FA" || r.status === "WAIVERS");
+  if (f.show === "available") rows = rows.filter((r) => r.status === "FA" || r.status === "WAIVERS");
+  else if (f.show === "rostered") rows = rows.filter((r) => r.status === "OWNED");
   if (f.q) rows = rows.filter((r) => r.name.toLowerCase().includes(f.q.toLowerCase()));
-  const cols = rankCols(view, enabled, f.pos === "ALL");
+  const cols = rankCols(view, enabled, f.pos === "ALL", state.cols);
   const key = `rank-${view}`;
+  // Position "All" has no meaningful cross-position rank order: default to
+  // Owned % descending (the only cross-position signal). A single position
+  // defaults to board rank. A header click overrides either.
+  const sort = state.sort[key] ||
+    (f.pos === "ALL" ? { col: "owned", dir: -1 } : null);
   el.innerHTML = `
     <div class="controls">
       <div class="tabs">${VIEWS.map((v) => `<button data-v="${v}"
         class="${v === view ? "active" : ""}">${VIEW_LABELS[v]}</button>`).join("")}</div>
       ${posChips("rk-pos", f.pos, ["ALL", ...POS_ORDER])}
+      <div class="tabs" id="rk-show">${SHOW.map(([v, l]) =>
+        `<button data-show="${v}" class="${f.show === v ? "active" : ""}">${l}</button>`).join("")}</div>
+      <details class="cols" id="rk-cols"${state.colsOpen ? " open" : ""}>
+        <summary>Columns</summary>
+        <div class="cols-pop">${COL_DEFS.map(([id, l]) =>
+          `<label class="tog"><input type="checkbox" data-col="${id}"
+            ${state.cols[id] ? "checked" : ""}>${l}</label>`).join("")}</div>
+      </details>
       <input type="text" id="rk-q" placeholder="search name…" value="${esc(f.q)}">
-      <label class="tog" title="Hide rostered players: show only free agents and waivers, in rank order">
-        <input type="checkbox" id="rk-avail" ${f.avail ? "checked" : ""}>Available only (FA + waivers)</label>
       <span class="muted">${rows.length} players</span>
     </div>
     <div class="controls">${sourceToggles(avail)}</div>
-    ${sortTable(key, cols, rows)}
+    ${sortTable(key, cols, rows, { sort })}
     <details class="panel"><summary>Unmatched
       (${Object.values(b.unmatched).reduce((n, r) => n + r.length, 0)})</summary>
       <table><thead><tr><th>Source</th><th>Player</th><th>Pos</th><th>Team</th></tr></thead>
@@ -413,26 +414,40 @@ function renderRankings() {
     </details>`;
   bindSort(el, key, cols);
   $$("button[data-v]", el).forEach((btn) => {
-    btn.onclick = () => { state.rankView = btn.dataset.v; renderRankings(); };
+    btn.onclick = () => { state.rankView = btn.dataset.v; renderBoard(); };
   });
   $$("#rk-pos button", el).forEach((btn) => {
-    btn.onclick = () => { state.rk.pos = btn.dataset.pos; renderRankings(); };
+    btn.onclick = () => { state.rk.pos = btn.dataset.pos; renderBoard(); };
   });
-  $("#rk-avail").onchange = (e) => { state.rk.avail = e.target.checked; renderRankings(); };
+  $$("#rk-show button", el).forEach((btn) => {
+    btn.onclick = () => { state.rk.show = btn.dataset.show; renderBoard(); };
+  });
+  $$("#rk-cols input[data-col]", el).forEach((cb) => {
+    cb.onchange = () => {
+      state.colsOpen = $("#rk-cols").open;  // reopen after the re-render
+      state.cols[cb.dataset.col] = cb.checked;
+      saveCols(); renderBoard();
+    };
+  });
   $("#rk-q").oninput = (e) => {
-    state.rk.q = e.target.value; renderRankings();
+    state.rk.q = e.target.value; renderBoard();
     const q = $("#rk-q"); q.focus();
     q.setSelectionRange(q.value.length, q.value.length);
   };
-  bindSourceToggles(el, renderRankings);
+  bindSourceToggles(el, renderBoard);
 }
 
 // K and D/ST: always this week's ranks, one table per position (SPEC §7).
+// K & D/ST keep their own fixed columns (ENH-036 left the tab unchanged):
+// no Owned %/Own Δ, Sprd and Tier on as before.
+const KD_COLS = { team: true, opp: true, bye: false, sprd: true, tier: true,
+                  mover: true, owned: false, ownDelta: false };
+
 function renderKD() {
   const el = $("#view-kd");
   const avail = sourcesForView("weekly");
   const enabled = SOURCES.filter((s) => state.enabled.has(s) && avail.includes(s));
-  const cols = rankCols("weekly", enabled, false);
+  const cols = rankCols("weekly", enabled, false, KD_COLS);
   const block = (pos, label) => {
     const rows = rankRows("weekly", enabled, [pos]);
     const best = rows.find((r) => r.status === "FA" || r.status === "WAIVERS");
@@ -550,7 +565,10 @@ const LB_TABS = {
 function srcLabel(s) { return SOURCE_LABELS[s] || s; }
 
 function whoLabel(p) {
-  if (p.status !== "OWNED") return `<span class="badge ${esc(p.status)}">${esc(p.status)}</span>`;
+  if (p.status === "FA")
+    return `<span class="badge FA" title="Free agent — claim is instant.">FA</span>`;
+  if (p.status === "WAIVERS")
+    return `<span class="badge WAIVERS" title="On the claim list right now. Sun–Tue that is everyone; Wed–Sat it is only players dropped this week (or after TNF).">WA</span>`;
   if (p.ownerTeamId === state.board.meta.myTeamId) return `<strong>mine</strong>`;
   const t = (state.board.teams || []).find((t2) => t2.id === p.ownerTeamId);
   return `<span class="muted">${esc(t ? t.abbrev || t.name : p.ownerTeamId)}</span>`;
@@ -698,8 +716,7 @@ function renderLookback() {
 
 function render() {
   if (!state.board) return;
-  if (state.view === "waivers") renderWaivers();
-  else if (state.view === "rankings") renderRankings({});
+  if (state.view === "rankings") renderBoard();
   else if (state.view === "kd") renderKD();
   else if (state.view === "lookback") renderLookback();
   else renderTeam();

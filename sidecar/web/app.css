@@ -117,3 +117,16 @@ td.tier { font-weight: 600; }
 td.tier.t1 { color: #7ee2a8; } td.tier.t2 { color: #a6dc7c; } td.tier.t3 { color: #d9d27a; }
 td.tier.t4 { color: #e6b070; } td.tier.t5 { color: #e38f76; } td.tier.t6 { color: var(--muted); }
 .tabs + .tabs { margin-left: 4px; }
+/* ENH-036: column picker */
+.cols { position: relative; display: inline-block; }
+.cols summary { cursor: pointer; font-size: 12.5px; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px;
+  list-style: none; }
+.cols summary::-webkit-details-marker { display: none; }
+.cols summary:hover { border-color: var(--accent); }
+.cols summary::after { content: " ▾"; font-size: 9px; }
+.cols-pop { position: absolute; top: calc(100% + 4px); left: 0; z-index: 6;
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  padding: 8px 12px; display: flex; flex-direction: column; gap: 5px;
+  min-width: 108px; }

@@ -140,8 +140,11 @@ class TestEspnParsers(unittest.TestCase):
         self.assertEqual(by_id[102]["pos"], "D/ST")       # proTeamId 6
         self.assertEqual(by_id[200]["status"], "WAIVERS")
         self.assertEqual(by_id[200]["pctOwned"], 88.07)
+        self.assertEqual(by_id[200]["pctOwnedChange"], -1.45)
         self.assertEqual(by_id[201]["status"], "FA")
         self.assertIsNone(by_id[201]["pctOwned"])
+        self.assertIsNone(by_id[201]["pctOwnedChange"])
+        self.assertIsNone(by_id[100]["pctOwnedChange"])  # roster players
 
     def test_byes_come_from_pro_team_schedules(self):
         out = espn.parse(self.league, self.fa, self.pro, CFG, 2026)
