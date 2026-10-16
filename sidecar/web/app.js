@@ -50,6 +50,8 @@ const state = {
   rankView: "weekly",
   enabled: new Set(SOURCES),
   rk: { pos: "ALL", q: "", show: "available" },  // show: available | rostered | all
+  kp: { pos: "ALL", q: "", show: "others",
+        topN: true, topNVal: 20, maxPrice: null },
   cols: loadCols(),
   colsOpen: false,  // keep the Columns menu open across a column re-render
   lb: { tab: "risers", pos: "ALL", who: "ALL", week: null, wpos: "QB" },
@@ -211,11 +213,14 @@ function sortTable(key, cols, rows, opts = {}) {
   rows.forEach((r, i) => { r._i = i; });
   const sort = (opts.sort !== undefined ? opts.sort : state.sort[key]) || null;
   const shown = applySort(rows, cols, sort).slice(0, opts.limit || Infinity);
-  const body = shown.map((r) => `<tr>${cols.map((c) => {
-    const cls = [c.num ? "num" : "", c.cls ? c.cls(r) || "" : ""].join(" ").trim();
-    const inner = c.cell ? c.cell(r) : esc(c.get(r) ?? "");
-    return `<td${cls ? ` class="${cls}"` : ""}>${inner}</td>`;
-  }).join("")}</tr>`).join("");
+  const body = shown.map((r) => {
+    const trCls = opts.rowCls ? opts.rowCls(r) : "";
+    return `<tr${trCls ? ` class="${trCls}"` : ""}>${cols.map((c) => {
+      const cls = [c.num ? "num" : "", c.cls ? c.cls(r) || "" : ""].join(" ").trim();
+      const inner = c.cell ? c.cell(r) : esc(c.get(r) ?? "");
+      return `<td${cls ? ` class="${cls}"` : ""}>${inner}</td>`;
+    }).join("")}</tr>`;
+  }).join("");
   const more = opts.limit && rows.length > opts.limit
     ? `<p class="note">Showing ${opts.limit} of ${rows.length}${opts.moreNote || ""}.</p>` : "";
   return `<div class="tbl-wrap${opts.compact ? " compact" : ""}" data-key="${key}">
@@ -435,6 +440,157 @@ function renderBoard() {
     q.setSelectionRange(q.value.length, q.value.length);
   };
   bindSourceToggles(el, renderBoard);
+}
+
+/* ---------------- keepers (ENH-037) ---------------- */
+
+// Trade targets: every player in the pool with his next-season keeper
+// price. "others" is the default show — the point is who to trade for.
+// Keep price = last auction price + tier (yr 1 +$7, yr 2 +$10, yr 3 +$12,
+// yr 4+ +$15 estimated); no pick this season is a $5 UDFA base ($12).
+// The server computes it (model.keeper_price).
+const KEEP_SHOW = [["others", "On other teams"],
+                   ["available", "Free agents & waivers"],
+                   ["mine", "Mine"], ["all", "All"]];
+const KEEP_PRICE_TIP = ("price to keep next season = this season's auction " +
+  "price + tier: yr 1 +$7 · yr 2 +$10 · yr 3 +$12 · yr 4+ +$15 (estimated, ~). " +
+  "No pick this season = $5 UDFA base → $12. * = commissioner-set override.");
+const KEEP_EST_TIP = ("estimated: 4th+ keeper year, or the kept chain runs " +
+  "back to the first fetched season (2019)");
+const money = (n) => (n % 1 ? n.toFixed(1) : n);
+
+function keepRows(positions) {
+  const b = state.board;
+  const dyn = rankRows("dynasty",
+    SOURCES.filter((s) => state.enabled.has(s) && sourcesForView("dynasty").includes(s)),
+    positions);
+  const ros = rankRows("ros",
+    SOURCES.filter((s) => state.enabled.has(s) && sourcesForView("ros").includes(s)),
+    positions);
+  const dmap = {}; dyn.forEach((r) => (dmap[r.pid] = r));
+  const rmap = {}; ros.forEach((r) => (rmap[r.pid] = r));
+  const rows = Object.entries(b.players)
+    .filter(([, p]) => positions.includes(p.pos))
+    .map(([pid, p]) => ({
+      pid, name: p.name, pos: p.pos, team: p.team, injury: p.injury,
+      status: p.status, ownerTeamId: p.ownerTeamId, pctOwned: p.pctOwned,
+      keep: p.keep || null,
+      dynRk: dmap[pid] ? dmap[pid].posRank : null,
+      dynAvg: dmap[pid] ? dmap[pid].avg : null,
+      rosRk: rmap[pid] ? rmap[pid].posRank : null,
+    }));
+  // Default: cheapest to keep first, ties by dynasty rank — the
+  // trade-target list. A header click overrides.
+  rows.sort((a, b2) =>
+    (((a.keep && a.keep.price) ?? Infinity) - ((b2.keep && b2.keep.price) ?? Infinity)) ||
+    ((a.dynRk ?? Infinity) - (b2.dynRk ?? Infinity)) ||
+    Number(a.pid) - Number(b2.pid));
+  return rows;
+}
+
+function draftCell(r) {
+  const k = r.keep;
+  if (!k) return "–";
+  const season = state.board.meta.season;
+  if (k.kind === "kept") return `${season} kept $${money(k.base)} (yr ${k.used})`;
+  if (k.kind === "auction") return `${season} auction $${money(k.base)}`;
+  return "UDFA";
+}
+
+function keepCols(multiPos) {
+  return [
+    { id: "rk", label: "Rk", num: true, firstDir: 1, title: "dynasty rank at position",
+      get: (r) => r.dynRk,
+      cell: (r) => (r.dynRk == null ? "–" : (multiPos ? `${esc(r.pos)}${r.dynRk}` : r.dynRk)),
+      cls: () => "tier-cell" },
+    { id: "name", label: "Player", get: (r) => r.name.toLowerCase(),
+      cell: (r) => `<strong>${esc(r.name)}</strong>${injuryCell(r.injury)}` },
+    ...(multiPos ? [{ id: "pos", label: "Pos", get: (r) => POS_ORDER.indexOf(r.pos),
+      cell: (r) => esc(r.pos) }] : []),
+    { id: "team", label: "Team", get: (r) => r.team, cls: () => "muted" },
+    { id: "owner", label: "Owner",
+      get: (r) => (r.status === "OWNED" ? `~${r.ownerTeamId}` : r.status),
+      cell: (r) => whoLabel(r) },
+    { id: "draft", label: "Draft", get: (r) => draftCell(r), cell: (r) => draftCell(r) },
+    { id: "used", label: "Used", num: true, firstDir: 1, title: "keeper years used",
+      get: (r) => (r.keep ? r.keep.used : null),
+      cell: (r) => (r.keep ? r.keep.used : "–"), cls: () => "muted" },
+    { id: "keep", label: "Keep price", num: true, firstDir: 1, title: KEEP_PRICE_TIP,
+      get: (r) => (r.keep ? r.keep.price : null),
+      cell: (r) => {
+        const k = r.keep;
+        if (!k) return "–";
+        const tilde = k.estimated
+          ? `<span class="muted" title="${KEEP_EST_TIP}">~</span>` : "";
+        const star = k.override ? `<span class="muted" title="commissioner-set override"> *</span>` : "";
+        return `<strong>${tilde}$${money(k.price)}${star}</strong>`;
+      } },
+    { id: "dyn", label: "Dyn", num: true, firstDir: 1,
+      title: "dynasty consensus rank within position",
+      get: (r) => r.dynAvg,
+      cell: (r) => (r.dynAvg == null ? "–" : r.dynAvg.toFixed(1)),
+      cls: () => "muted" },
+    { id: "ros", label: "ROS", num: true, firstDir: 1,
+      title: "rest-of-season rank within position",
+      get: (r) => r.rosRk,
+      cell: (r) => (r.rosRk == null ? "–" : r.rosRk), cls: () => "muted" },
+    { id: "owned", label: "Owned %", num: true, get: (r) => r.pctOwned,
+      cell: (r) => (r.pctOwned != null ? r.pctOwned.toFixed(1) : "–") },
+  ];
+}
+
+function renderKeepers() {
+  const el = $("#view-keepers");
+  const f = state.kp;
+  const myId = state.board.meta.myTeamId;
+  const positions = f.pos === "ALL" ? ["QB", "RB", "WR", "TE"] : [f.pos];
+  let rows = keepRows(positions);
+  if (f.show === "others") rows = rows.filter((r) => r.status === "OWNED" && r.ownerTeamId !== myId);
+  else if (f.show === "available") rows = rows.filter((r) => r.status === "FA" || r.status === "WAIVERS");
+  else if (f.show === "mine") rows = rows.filter((r) => r.status === "OWNED" && r.ownerTeamId === myId);
+  if (f.topN) rows = rows.filter((r) => r.dynRk != null && r.dynRk <= f.topNVal);
+  if (f.maxPrice != null) rows = rows.filter((r) => r.keep && r.keep.price <= f.maxPrice);
+  if (f.q) rows = rows.filter((r) => r.name.toLowerCase().includes(f.q.toLowerCase()));
+  const cols = keepCols(f.pos === "ALL");
+  const key = "keepers";
+  el.innerHTML = `
+    <div class="controls">
+      ${posChips("kp-pos", f.pos, ["ALL", "QB", "RB", "WR", "TE"])}
+      <div class="tabs" id="kp-show">${KEEP_SHOW.map(([v, l]) =>
+        `<button data-kps="${v}" class="${f.show === v ? "active" : ""}">${l}</button>`).join("")}</div>
+      <label class="tog"><input type="checkbox" id="kp-topn"${f.topN ? " checked" : ""}> top</label>
+      <input type="number" id="kp-topn-n" min="1" class="kp-num"
+        ${f.topN ? "" : "disabled"} value="${f.topNVal}" aria-label="top N at position">
+      <label class="tog">max $</label>
+      <input type="number" id="kp-max" min="0" step="1" class="kp-num"
+        placeholder="any" value="${f.maxPrice == null ? "" : f.maxPrice}" aria-label="max keep price">
+      <input type="text" id="kp-q" placeholder="search name…" value="${esc(f.q)}">
+      <span class="muted">${rows.length} players · price = keep for ${state.board.meta.season + 1}</span>
+    </div>
+    ${sortTable(key, cols, rows, {
+      rowCls: (r) => (r.status === "OWNED" && r.ownerTeamId === myId ? "mine" : ""),
+    })}`;
+  bindSort(el, key, cols);
+  $$("#kp-pos button", el).forEach((btn) => {
+    btn.onclick = () => { state.kp.pos = btn.dataset.pos; renderKeepers(); };
+  });
+  $$("#kp-show button", el).forEach((btn) => {
+    btn.onclick = () => { state.kp.show = btn.dataset.kps; renderKeepers(); };
+  });
+  $("#kp-topn").onchange = (e) => { state.kp.topN = e.target.checked; renderKeepers(); };
+  $("#kp-topn-n").onchange = (e) => {
+    state.kp.topNVal = Math.max(1, parseInt(e.target.value, 10) || 20);
+    renderKeepers();
+  };
+  $("#kp-max").onchange = (e) => {
+    state.kp.maxPrice = e.target.value === "" ? null : Number(e.target.value);
+    renderKeepers();
+  };
+  $("#kp-q").oninput = (e) => {
+    state.kp.q = e.target.value; renderKeepers();
+    const q = $("#kp-q"); q.focus();
+    q.setSelectionRange(q.value.length, q.value.length);
+  };
 }
 
 // K and D/ST: always this week's ranks, one table per position (SPEC §7).
@@ -717,6 +873,7 @@ function renderLookback() {
 function render() {
   if (!state.board) return;
   if (state.view === "rankings") renderBoard();
+  else if (state.view === "keepers") renderKeepers();
   else if (state.view === "kd") renderKD();
   else if (state.view === "lookback") renderLookback();
   else renderTeam();

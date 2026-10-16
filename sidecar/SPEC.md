@@ -52,6 +52,7 @@ sidecar/
   config.json        league 877873, season, my teamId (1), cache TTL, thresholds
   sources/
     espn.py          FFF rosters, free agents/waivers, settings, NFL schedule
+    drafts.py        ESPN auction draft history, per season — keeper prices
     ffballers.py     The Fantasy Footballers weekly projections (per analyst)
     harris.py        Harris Football weekly ranks
     fantasypros.py   FantasyPros consensus ranks: ROS, dynasty, weekly K/DST
@@ -81,6 +82,14 @@ Base: `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/<season>/
   Achane (WAIVERS, IR), Cameron Dicker and others.
 - The owner is **teamId 1** ("Walker, Kenneth Ranger"). Put it in
   `config.json`, not in code.
+- **Draft history (keepers, ENH-037):** on the same base, `?view=mDraftDetail`
+  returns `draftDetail.picks[]` — `playerId` (the same ESPN id used
+  everywhere else), `teamId`, `bidAmount` (the auction price) and `keeper`.
+  Works unauthenticated for every season from 2019. One request per season;
+  a finished draft never changes, so each past season is cached permanently
+  in `cache/draft-<season>.json` and only the current season re-fetches on
+  the normal refresh. A season with no `picks` is a **source failure**,
+  never an empty draft.
 
 ### The Fantasy Footballers (free weekly)
 `https://www.thefantasyfootballers.com/<season>-<pos>-rankings/`, where
@@ -135,6 +144,7 @@ Base: `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/<season>/
 | **Weekly** | Harris, Andy, Jason, Mike |
 | **Rest of season** | FantasyPros ROS |
 | **Dynasty / keeper** | FantasyPros dynasty |
+| **Keepers** | drafts (ESPN); no toggle — it's the data, not a rank |
 | **K (weekly)** | Andy, Jason, Mike, FantasyPros K |
 | **D/ST (weekly)** | Harris, Andy, Jason, Mike, FantasyPros DST |
 
@@ -211,7 +221,7 @@ Base: `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/<season>/
 
 The owner's rule: general information first, advice for his team last.
 
-1. **Header:** tab nav (Board · K & D/ST · My Team · Look back), the source
+1. **Header:** tab nav (Board · Keepers · K & D/ST · My Team · Look back), the source
    toggles for the current view (checkboxes; all on by default), the status
    line (§4), and a Refresh button.
 2. **Board** (ENH-036): one table — the old Waivers and Rankings tabs,
@@ -238,10 +248,23 @@ The owner's rule: general information first, advice for his team last.
      %, Own Δ; the choice persists in `localStorage` (`waiverboard.cols`).
    - The source toggles re-rank live in the browser from the per-source
      ranks the API returns. Sortable, and searchable by name.
-3. **D/ST and K:** two compact weekly tables with their own toggles
+3. **Keepers** (ENH-037): the trade-target list — every player with his
+   next-season keeper price, computed in `model.keeper_price` from the
+   draft history: no pick this season = $5 UDFA base ($12); a pick = its
+   auction price + a tier by consecutive keeper years already used
+   (+$7 / +$10 / +$12, and +$15 marked `~` estimated from a fourth keeper
+   year on, or when the kept chain runs back to 2019). An auction re-buy
+   resets the chain; commissioner-set prices in `config.json`
+   (`keepers.overrides`) win. Controls: position chips (QB/RB/WR/TE),
+   Show (other teams — the default — / free agents & waivers / mine /
+   all), top-N dynasty rank filter (default 20; off shows unranked players
+   as `–`), max keep price, name search. Default sort: keep price
+   ascending, ties by dynasty rank; header clicks use the shared
+   `sortTable`. The owner's players are highlighted.
+4. **D/ST and K:** two compact weekly tables with their own toggles
    (sources in §3), marking which are available. Streaming line: "Best
    available D/ST this week: X (consensus N) vs yours: Y (N)."
-4. **My team** (teamId 1), last:
+5. **My team** (teamId 1), last:
    - **Roster:** every player with weekly, ROS and dynasty consensus, and
      lineup slot, injury and bye.
    - **Upgrade suggestions:** "Add X, drop Y". Pair a free agent with the
@@ -254,7 +277,7 @@ The owner's rule: general information first, advice for his team last.
      the best free agent at their position (ROS). Listed, not automatic.
    - **Keeper targets:** the owner's roster sorted by dynasty consensus, and
      the best free agents by dynasty rank, marked as "dynasty: 1 source".
-     FFF keeper pricing isn't in ESPN; showing costs is out of scope for v1.
+     Next-season keeper prices live in the Keepers tab.
    - **Bye-week check:** positions where the owner's starters share a bye in
      the next three weeks.
 
@@ -279,6 +302,15 @@ CSS.
   `upgradeMargin`, starting-slot minimums and IR; bye-week check.
 - **Names:** suffix and punctuation cases, an alias, a D/ST from each
   source's format, and an unmatched name that lands in the unmatched list.
+- **Keepers (ENH-037):** `keeper_price` vectors (UDFA base, every tier, an
+  auction re-buy resetting the chain, `~` for a fourth+ keeper year and for
+  a chain cut off at the earliest season, overrides); `keeper_backtest`
+  against the trimmed real-draft fixture (50/53 on the 2026 draft — the
+  three misses are commissioner exceptions, the case for `overrides`); the
+  drafts source parser (a season without `picks` fails, never returns an
+  empty draft; finished seasons are cached permanently); and
+  `build_board`'s keep payload (every player gets a price, even with no
+  draft history).
 
 ## 9. Done when
 
@@ -298,5 +330,5 @@ CSS.
 ## 10. Later (not v1)
 
 FAAB bid suggestions; the other four leagues (private, so they need ESPN
-cookies); keeper-cost math from FFF's rules; more sources through the
+cookies); more sources through the
 `sources/` registry; trade suggestions.

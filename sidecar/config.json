@@ -4,6 +4,11 @@
   "myTeamId": 1,
   "cacheTtlMinutes": 60,
   "upgradeMargin": 5,
+  "keepers": {
+    "udfaBase": 5,
+    "increments": [7, 10, 12, 15],
+    "overrides": {}
+  },
   "fantasyprosDelaySec": 5,
   "port": 8765,
   "aliases": {},

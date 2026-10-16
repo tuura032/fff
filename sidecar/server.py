@@ -26,6 +26,7 @@ from pathlib import Path
 import analysis
 import model
 import names
+import sources.drafts as drafts
 import sources.espn as espn
 import sources.ffballers as ffb
 import sources.harris as harris
@@ -34,8 +35,8 @@ import sources.history as history
 from sources.common import Cache, Client, age_seconds
 
 HERE = Path(__file__).resolve().parent
-SOURCES = {"espn": espn, "ffballers": ffb, "harris": harris,
-           "fantasypros": fp, "history": history}
+SOURCES = {"espn": espn, "drafts": drafts, "ffballers": ffb,
+           "harris": harris, "fantasypros": fp, "history": history}
 # The five rank sources the board can toggle (model.py source keys).
 RANK_SOURCES = ("ffb-andy", "ffb-jason", "ffb-mike", "harris", "fp")
 VIEWS = ("weekly", "ros", "dynasty")
@@ -105,12 +106,14 @@ class State:
 
 
 
-def _player_view(p):
+def _player_view(p, keep=None):
     d = {"name": p["name"], "pos": p["pos"], "team": p.get("team"),
          "injury": p.get("injury"), "bye": p.get("bye"),
          "pctOwned": p.get("pctOwned"),
          "pctOwnedChange": p.get("pctOwnedChange"),
          "status": p["status"]}
+    if keep is not None:
+        d["keep"] = keep
     if p.get("ownerTeamId") is not None:
         d["ownerTeamId"] = p["ownerTeamId"]
         d["lineupSlotId"] = p.get("lineupSlotId")
@@ -209,6 +212,22 @@ def build_board(state):
         cur = {pid: c["avg"] for pid, c in cons_w.items()}
         movers, movers_since = snapshot_movers(cache, cfg["season"], cur)
 
+    # Keepers (ENH-037): next-season price for EVERY player in the pool —
+    # the rule is "no pick this season = $5 UDFA base", so a player with no
+    # draft history at all still gets a price ($12). Absent (null) until the
+    # drafts source has run once.
+    drafts_p = cache.load("drafts") or {}
+    keepers_cfg = cfg.get("keepers") or {}
+    keeps = {}
+    if drafts_p.get("seasons") and keepers_cfg.get("increments"):
+        earliest = min(drafts_p["seasons"]) or 2019
+        picks_by_id = {int(pid): {int(s): v for s, v in per.items()}
+                       for pid, per in (drafts_p.get("picks") or {}).items()}
+        for p in players:
+            keeps[p["espnId"]] = model.keeper_price(
+                picks_by_id.get(p["espnId"], {}), cfg["season"], keepers_cfg,
+                espn_id=p["espnId"], earliest=earliest)
+
     return {
         "meta": {
             "season": league.get("season") or cfg.get("season"),
@@ -220,7 +239,8 @@ def build_board(state):
             "moversSince": movers_since,
         },
         "status": state.status(),
-        "players": {str(p["espnId"]): _player_view(p) for p in players},
+        "players": {str(p["espnId"]): _player_view(p, keeps.get(p["espnId"]))
+                    for p in players},
         "teams": espn_p.get("teams") or [],
         "ranks": ranks,
         "weekInfo": {str(k): v for k, v in week_info.items()},

@@ -186,6 +186,81 @@ def movers(current, previous):
 
 
 # --------------------------------------------------------------------------
+# Keepers (ENH-037)
+
+def keeper_price(picks, season, keepers, espn_id=None, earliest=2019):
+    """Next-season keeper price for one player (owner-confirmed rule).
+
+    picks: {season: {"bid": number|None, "keeper": bool}} — the player's
+        recorded auction picks, every season from the first fetched one.
+    season: S, the season being kept out of; the price is for keeping into
+        S+1 (the 2026 price is already spent).
+    keepers: config["keepers"] — {"udfaBase", "increments", "overrides"}.
+    espn_id: looked up in "overrides" (commissioner-set fixed prices).
+    earliest: first season with data; a kept chain running back to it is a
+        lower bound, so the price is marked estimated.
+
+    Rule: no pick in S -> base is the UDFA base and zero keeps used (a
+    player drafted in earlier years and dropped counts as UDFA). Otherwise
+    base is S's bid, and k = consecutive kept seasons ending at S (a normal
+    auction re-buy resets the chain). Price = base +
+    increments[min(k, len(increments) - 1)]; estimated when k has run past
+    the last listed tier (a fourth keeper year or later) or the chain is
+    cut off at `earliest`. An override replaces the computed price.
+    """
+    inc = keepers["increments"]
+    pick = picks.get(season) or {}
+    bid = pick.get("bid")
+    if bid is None:
+        base, k, kind = keepers.get("udfaBase", 5), 0, "udfa"
+        cutoff = False
+    else:
+        base = bid
+        kind = "kept" if pick.get("keeper") else "auction"
+        k, s = 0, season
+        while s >= earliest and (picks.get(s) or {}).get("keeper"):
+            k += 1
+            s -= 1
+        cutoff = s == earliest - 1
+    estimated = k >= len(inc) or (kind == "kept" and cutoff)
+    out = {"price": base + inc[min(k, len(inc) - 1)], "base": base,
+           "kind": kind, "used": k, "estimated": estimated,
+           "override": False}
+    ov = None
+    if espn_id is not None:
+        ov = (keepers.get("overrides") or {}).get(str(espn_id))
+    if ov is not None:
+        out = {**out, "price": ov, "estimated": False, "override": True}
+    return out
+
+
+def keeper_backtest(picks_by_player, season, keepers, earliest=2019):
+    """The rule vs the league's recorded keeper prices, for one draft.
+
+    picks_by_player: {espnId: {season: {"bid", "keeper"}}} with int seasons.
+    For every player whose pick in `season` was a keeper, the price the
+    rule would have asked (computed from the seasons before it) is
+    compared with the recorded bid. Overrides are NOT applied: this tests
+    the rule, and overrides are exactly the commissioner exceptions it
+    misses. Returns (matched, [(espnId, recorded, rule), ...]) with misses
+    sorted by espnId.
+    """
+    matched = 0
+    misses = []
+    for pid, picks in picks_by_player.items():
+        pick = picks.get(season) or {}
+        if pick.get("bid") is None or not pick.get("keeper"):
+            continue
+        rule = keeper_price({s: v for s, v in picks.items() if s < season},
+                            season - 1, keepers, earliest=earliest)["price"]
+        if rule == pick["bid"]:
+            matched += 1
+        else:
+            misses.append((pid, pick["bid"], rule))
+    return matched, sorted(misses)
+
+
+# --------------------------------------------------------------------------
 # Team advice
 
 def can_fill_lineup(positions, slot_counts):

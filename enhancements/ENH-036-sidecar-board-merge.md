@@ -61,7 +61,7 @@ It is one table of players with different columns. The owner's workflow is
   position-rank average is meaningless). When a single position is chosen,
   the default sort is the board rank, as today. Click-to-sort headers keep
   working. A real cross-position comparison against the owner's roster is
-  ENH-037, not this item.
+  a later "Moves" item, not this one.
 - The old min-owned-% input is dropped. Owned % is a sortable column.
 
 ### Status badge (Roster column)
@@ -102,7 +102,7 @@ K & D/ST, My Team and Look back tabs, `server.py` and the API contract.
 
 - A **Proj** (projected points) column next to rank, ESPN-style. The FFB
   analyst projections already go through `model.project_points`, but
-  surfacing them needs an API change. That is ENH-037's "Moves" work, so
+  surfacing them needs an API change. That belongs to a later "Moves" item, so
   don't start it here.
 - Anything that compares a free agent to the owner's roster (Δ vs. my slot,
   bye-week cover, add/drop pairs, keeper cost).

@@ -1,4 +1,5 @@
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -6,6 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import sources.drafts as drafts  # noqa: E402
 import sources.espn as espn  # noqa: E402
 import sources.ffballers as ffb  # noqa: E402
 import sources.harris as harris  # noqa: E402
@@ -175,6 +177,87 @@ class TestEspnParsers(unittest.TestCase):
             espn.parse({}, self.fa, self.pro, CFG, 2026)
         with self.assertRaises(SourceError):
             espn.parse(self.league, {"players": []}, self.pro, CFG, 2026)
+
+
+# mDraftDetail test responses: player 999 appears every season (kept from
+# 2021 on), and each season adds one more player drafted that year only.
+def draft_response(season, broken=False):
+    if broken:
+        return {"draftDetail": {"drafted": True, "inProgress": False}}
+    return {"draftDetail": {"drafted": True, "inProgress": False, "picks": [
+        {"playerId": 999, "bidAmount": season - 2018, "keeper": season > 2020,
+         "teamId": 1},
+        {"playerId": 1000 + season, "bidAmount": 1, "keeper": False,
+         "teamId": 2},
+    ]}}
+
+
+class FakeDraftClient:
+    """Canned mDraftDetail responses; records which seasons were fetched."""
+
+    def __init__(self, broken=()):
+        self.broken = set(broken)
+        self.calls = []
+
+    def get(self, url, headers=None):
+        season = int(re.search(r"seasons/(\d+)", url).group(1))
+        self.calls.append(season)
+        broken = self.broken
+
+        class _Resp:
+            def json(self):
+                if season in broken:
+                    raise SourceError(f"drafts: simulating {season} failure")
+                return draft_response(season)
+        return _Resp()
+
+
+class TestDrafts(unittest.TestCase):
+    CFG = {"leagueId": "877873",
+           "urls": {"espn": "https://x/seasons/{season}/segments/0/"
+                            "leagues/{leagueId}"}}
+
+    def test_parse_picks(self):
+        out = drafts.parse_picks(draft_response(2024))
+        self.assertEqual(out, {999: {"bid": 6, "keeper": True},
+                               3024: {"bid": 1, "keeper": False}})
+
+    def test_no_picks_is_a_source_failure(self):
+        with self.assertRaises(SourceError):
+            drafts.parse_picks(draft_response(2024, broken=True))
+
+    def test_finished_seasons_are_cached_permanently(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            client = FakeDraftClient()
+            payload = drafts.fetch(client, self.CFG, 2026, cache_dir=tmp)
+            self.assertEqual(client.calls, list(range(2019, 2027)))
+            self.assertEqual(payload["seasons"], list(range(2019, 2027)))
+            self.assertEqual(sorted((Path(tmp) / f"draft-{s}.json")
+                                    .exists() for s in range(2019, 2026)),
+                             [True] * 7)
+            # Second refresh: only the current season goes to ESPN again.
+            client2 = FakeDraftClient()
+            payload2 = drafts.fetch(client2, self.CFG, 2026, cache_dir=tmp)
+            self.assertEqual(client2.calls, [2026])
+            self.assertEqual(payload2["picks"], payload["picks"])
+
+    def test_per_player_index(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = drafts.fetch(FakeDraftClient(), self.CFG, 2026,
+                                   cache_dir=tmp)
+            p999 = payload["picks"]["999"]
+            self.assertEqual(p999["2026"], {"bid": 8, "keeper": True})
+            self.assertEqual(p999["2019"], {"bid": 1, "keeper": False})
+            self.assertIn("2026", payload["picks"]["3026"])  # one-year player
+            self.assertTrue(payload["notes"])
+
+    def test_broken_past_season_is_a_failure_not_an_empty_draft(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(SourceError):
+                drafts.fetch(FakeDraftClient(broken=(2021,)), self.CFG, 2026,
+                             cache_dir=tmp)
+            # The good seasons were still cached for next time.
+            self.assertTrue((Path(tmp) / "draft-2019.json").exists())
 
 
 class TestCache(unittest.TestCase):
