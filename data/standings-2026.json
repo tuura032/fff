@@ -2,7 +2,7 @@
   "season": 2026,
   "league": "877873",
   "leagueName": "Fantasy Football Fantasy",
-  "updated": "2026-10-06T18:12:35Z",
+  "updated": "2026-10-27T09:42:39Z",
   "regularSeasonWeeks": 14,
   "playoffTeamCount": 6,
   "entryFee": 25.0,
@@ -267,7 +267,7 @@
       "budget": 200
     }
   },
-  "throughWeek": 4,
+  "throughWeek": 7,
   "weeks": [
     {
       "week": 1,
@@ -804,163 +804,622 @@
           "weekPoints": 0
         }
       ]
+    },
+    {
+      "week": 5,
+      "scoreToBeat": 107.5,
+      "games": [
+        {
+          "home": 9,
+          "away": 11,
+          "homeScore": 120.8,
+          "awayScore": 107.5,
+          "winner": 9
+        },
+        {
+          "home": 7,
+          "away": 12,
+          "homeScore": 80.2,
+          "awayScore": 170.0,
+          "winner": 12
+        },
+        {
+          "home": 8,
+          "away": 2,
+          "homeScore": 87.7,
+          "awayScore": 80.9,
+          "winner": 8
+        },
+        {
+          "home": 1,
+          "away": 4,
+          "homeScore": 124.8,
+          "awayScore": 108.1,
+          "winner": 1
+        },
+        {
+          "home": 5,
+          "away": 6,
+          "homeScore": 86.0,
+          "awayScore": 127.3,
+          "winner": 6
+        },
+        {
+          "home": 10,
+          "away": 3,
+          "homeScore": 99.4,
+          "awayScore": 123.5,
+          "winner": 3
+        }
+      ],
+      "teams": [
+        {
+          "teamId": 1,
+          "score": 124.8,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 2,
+          "score": 80.9,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 3,
+          "score": 123.5,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 4,
+          "score": 108.1,
+          "h2h": 0,
+          "topHalf": 1,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 5,
+          "score": 86.0,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 6,
+          "score": 127.3,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 7,
+          "score": 80.2,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 8,
+          "score": 87.7,
+          "h2h": 1,
+          "topHalf": 0,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 9,
+          "score": 120.8,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 10,
+          "score": 99.4,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 11,
+          "score": 107.5,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 12,
+          "score": 170.0,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        }
+      ]
+    },
+    {
+      "week": 6,
+      "scoreToBeat": 97.4,
+      "games": [
+        {
+          "home": 11,
+          "away": 12,
+          "homeScore": 110.6,
+          "awayScore": 121.4,
+          "winner": 12
+        },
+        {
+          "home": 2,
+          "away": 9,
+          "homeScore": 87.9,
+          "awayScore": 97.4,
+          "winner": 9
+        },
+        {
+          "home": 4,
+          "away": 7,
+          "homeScore": 124.3,
+          "awayScore": 118.7,
+          "winner": 4
+        },
+        {
+          "home": 6,
+          "away": 8,
+          "homeScore": 99.3,
+          "awayScore": 144.4,
+          "winner": 8
+        },
+        {
+          "home": 3,
+          "away": 1,
+          "homeScore": 81.7,
+          "awayScore": 73.9,
+          "winner": 3
+        },
+        {
+          "home": 10,
+          "away": 5,
+          "homeScore": 82.4,
+          "awayScore": 83.9,
+          "winner": 5
+        }
+      ],
+      "teams": [
+        {
+          "teamId": 1,
+          "score": 73.9,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 2,
+          "score": 87.9,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 3,
+          "score": 81.7,
+          "h2h": 1,
+          "topHalf": 0,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 4,
+          "score": 124.3,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 5,
+          "score": 83.9,
+          "h2h": 1,
+          "topHalf": 0,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 6,
+          "score": 99.3,
+          "h2h": 0,
+          "topHalf": 1,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 7,
+          "score": 118.7,
+          "h2h": 0,
+          "topHalf": 1,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 8,
+          "score": 144.4,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 9,
+          "score": 97.4,
+          "h2h": 1,
+          "topHalf": 0,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 10,
+          "score": 82.4,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 11,
+          "score": 110.6,
+          "h2h": 0,
+          "topHalf": 1,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 12,
+          "score": 121.4,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        }
+      ]
+    },
+    {
+      "week": 7,
+      "scoreToBeat": 89.5,
+      "games": [
+        {
+          "home": 2,
+          "away": 11,
+          "homeScore": 127.4,
+          "awayScore": 133.5,
+          "winner": 11
+        },
+        {
+          "home": 12,
+          "away": 4,
+          "homeScore": 89.5,
+          "awayScore": 89.0,
+          "winner": 12
+        },
+        {
+          "home": 9,
+          "away": 6,
+          "homeScore": 120.5,
+          "awayScore": 78.8,
+          "winner": 9
+        },
+        {
+          "home": 7,
+          "away": 3,
+          "homeScore": 102.5,
+          "awayScore": 100.5,
+          "winner": 7
+        },
+        {
+          "home": 8,
+          "away": 10,
+          "homeScore": 75.2,
+          "awayScore": 57.7,
+          "winner": 8
+        },
+        {
+          "home": 1,
+          "away": 5,
+          "homeScore": 126.8,
+          "awayScore": 86.7,
+          "winner": 1
+        }
+      ],
+      "teams": [
+        {
+          "teamId": 1,
+          "score": 126.8,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 2,
+          "score": 127.4,
+          "h2h": 0,
+          "topHalf": 1,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 3,
+          "score": 100.5,
+          "h2h": 0,
+          "topHalf": 1,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 4,
+          "score": 89.0,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 5,
+          "score": 86.7,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 6,
+          "score": 78.8,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 7,
+          "score": 102.5,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 8,
+          "score": 75.2,
+          "h2h": 1,
+          "topHalf": 0,
+          "weekPoints": 1
+        },
+        {
+          "teamId": 9,
+          "score": 120.5,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 10,
+          "score": 57.7,
+          "h2h": 0,
+          "topHalf": 0,
+          "weekPoints": 0
+        },
+        {
+          "teamId": 11,
+          "score": 133.5,
+          "h2h": 1,
+          "topHalf": 1,
+          "weekPoints": 2
+        },
+        {
+          "teamId": 12,
+          "score": 89.5,
+          "h2h": 1,
+          "topHalf": 0,
+          "weekPoints": 1
+        }
+      ]
     }
   ],
   "standings": [
     {
       "rank": 1,
-      "teamId": 6,
-      "name": "Team Jamie",
-      "owner": "Jamie Sug",
-      "logo": "https://g.espncdn.com/lm-static/ffl/images/default_logos/19.svg",
-      "abbrev": "SUGA",
-      "points": 7,
-      "h2hPoints": 3,
-      "topHalfPoints": 4,
-      "finalRank": null,
-      "record": "3-1",
-      "pointsFor": 559.5,
-      "pointsAgainst": 445.3,
-      "averageScore": 139.9,
-      "avgLast3": 135.1,
-      "luckIndex": -1,
-      "streak": "L1"
-    },
-    {
-      "rank": 2,
-      "teamId": 7,
-      "name": "Daniel's Driven Team",
-      "owner": "Daniel Sen",
-      "logo": "https://g.espncdn.com/lm-static/ffl/images/default_logos/12.svg",
-      "abbrev": "DDT",
-      "points": 7,
-      "h2hPoints": 3,
-      "topHalfPoints": 4,
-      "finalRank": null,
-      "record": "3-1",
-      "pointsFor": 528.3,
-      "pointsAgainst": 477.0,
-      "averageScore": 132.1,
-      "avgLast3": 135.0,
-      "luckIndex": -1,
-      "streak": "W3"
-    },
-    {
-      "rank": 3,
       "teamId": 9,
       "name": "Wyld Stallyns",
       "owner": "Daniel Sha",
       "logo": "https://images.uncyclomedia.co/uncyclopedia/en/2/28/Billted.jpg",
       "abbrev": "WYLD",
-      "points": 6,
-      "h2hPoints": 3,
-      "topHalfPoints": 3,
+      "points": 11,
+      "h2hPoints": 6,
+      "topHalfPoints": 5,
       "finalRank": null,
-      "record": "3-1",
-      "pointsFor": 395.2,
-      "pointsAgainst": 356.9,
-      "averageScore": 98.8,
-      "avgLast3": 91.5,
-      "luckIndex": 0,
+      "record": "6-1",
+      "pointsFor": 733.9,
+      "pointsAgainst": 631.1,
+      "averageScore": 104.8,
+      "avgLast3": 112.9,
+      "luckIndex": 1,
+      "streak": "W4"
+    },
+    {
+      "rank": 2,
+      "teamId": 6,
+      "name": "Team Jamie",
+      "owner": "Jamie Sug",
+      "logo": "https://g.espncdn.com/lm-static/ffl/images/default_logos/19.svg",
+      "abbrev": "SUGA",
+      "points": 10,
+      "h2hPoints": 4,
+      "topHalfPoints": 6,
+      "finalRank": null,
+      "record": "4-3",
+      "pointsFor": 864.9,
+      "pointsAgainst": 796.2,
+      "averageScore": 123.6,
+      "avgLast3": 101.8,
+      "luckIndex": -2,
+      "streak": "L2"
+    },
+    {
+      "rank": 3,
+      "teamId": 7,
+      "name": "Daniel's Driven Team",
+      "owner": "Daniel Sen",
+      "logo": "https://g.espncdn.com/lm-static/ffl/images/default_logos/12.svg",
+      "abbrev": "DDT",
+      "points": 10,
+      "h2hPoints": 4,
+      "topHalfPoints": 6,
+      "finalRank": null,
+      "record": "4-3",
+      "pointsFor": 829.7,
+      "pointsAgainst": 871.8,
+      "averageScore": 118.5,
+      "avgLast3": 100.5,
+      "luckIndex": -2,
       "streak": "W1"
     },
     {
       "rank": 4,
-      "teamId": 2,
-      "name": "Taylor Sailors",
-      "owner": "Casey Pir",
-      "logo": "https://g.espncdn.com/lm-static/logo-packs/ffl/1stStringAllStars-SportsManias-RB/taylor-01.svg",
-      "abbrev": "AHOY",
-      "points": 5,
-      "h2hPoints": 3,
-      "topHalfPoints": 2,
-      "finalRank": null,
-      "record": "3-1",
-      "pointsFor": 422.2,
-      "pointsAgainst": 376.4,
-      "averageScore": 105.5,
-      "avgLast3": 109.6,
-      "luckIndex": 1,
-      "streak": "W3"
-    },
-    {
-      "rank": 5,
       "teamId": 11,
       "name": "De'Von to Break Down and Cry",
       "owner": "Pat Ben",
       "logo": "https://g.espncdn.com/lm-static/logo-packs/core/BobsBurgers/Linda.svg",
       "abbrev": "RIP",
-      "points": 4,
-      "h2hPoints": 1,
-      "topHalfPoints": 3,
-      "finalRank": null,
-      "record": "1-3",
-      "pointsFor": 493.1,
-      "pointsAgainst": 565.7,
-      "averageScore": 123.3,
-      "avgLast3": 114.4,
-      "luckIndex": -2,
-      "streak": "L3"
-    },
-    {
-      "rank": 6,
-      "teamId": 5,
-      "name": "Saquon Deez Nuts",
-      "owner": "Nick Kub",
-      "logo": "https://g.espncdn.com/lm-static/logo-packs/core/BobsBurgers/Teddy_OnModel.svg",
-      "abbrev": "KUBI",
-      "points": 4,
+      "points": 7,
       "h2hPoints": 2,
-      "topHalfPoints": 2,
+      "topHalfPoints": 5,
       "finalRank": null,
-      "record": "2-2",
-      "pointsFor": 435.4,
-      "pointsAgainst": 448.8,
-      "averageScore": 108.8,
-      "avgLast3": 104.2,
-      "luckIndex": 0,
-      "streak": "L1"
+      "record": "2-5",
+      "pointsFor": 844.7,
+      "pointsAgainst": 935.3,
+      "averageScore": 120.7,
+      "avgLast3": 117.2,
+      "luckIndex": -3,
+      "streak": "W1"
     },
     {
-      "rank": 7,
+      "rank": 5,
       "teamId": 1,
       "name": "Walker, Kenneth Ranger",
       "owner": "Paul Tuu",
       "logo": "https://g.espncdn.com/lm-static/ffl/images/default_logos/6.svg",
       "abbrev": "TUUR",
-      "points": 3,
-      "h2hPoints": 2,
-      "topHalfPoints": 1,
+      "points": 7,
+      "h2hPoints": 4,
+      "topHalfPoints": 3,
       "finalRank": null,
-      "record": "2-2",
-      "pointsFor": 486.2,
-      "pointsAgainst": 442.6,
-      "averageScore": 121.5,
-      "avgLast3": 131.6,
+      "record": "4-3",
+      "pointsFor": 811.7,
+      "pointsAgainst": 719.1,
+      "averageScore": 116.0,
+      "avgLast3": 108.5,
       "luckIndex": 1,
       "streak": "W1"
     },
     {
-      "rank": 8,
+      "rank": 6,
+      "teamId": 12,
+      "name": "Praise JA",
+      "owner": "Dav\u00edd Hui",
+      "logo": "https://g.espncdn.com/lm-static/ffl/images/default_logos/14.svg",
+      "abbrev": "RSTA",
+      "points": 7,
+      "h2hPoints": 4,
+      "topHalfPoints": 3,
+      "finalRank": null,
+      "record": "4-3",
+      "pointsFor": 767.7,
+      "pointsAgainst": 744.3,
+      "averageScore": 109.7,
+      "avgLast3": 127.0,
+      "luckIndex": 1,
+      "streak": "W3"
+    },
+    {
+      "rank": 7,
       "teamId": 3,
       "name": "Chat, Draft My Team",
       "owner": "Sam Eng",
       "logo": "https://g.espncdn.com/lm-static/logo-packs/ffl/SmackTalk-LeoEspinosa/Popcorn_Stripes-02.svg",
       "abbrev": "GPT",
-      "points": 3,
-      "h2hPoints": 2,
-      "topHalfPoints": 1,
+      "points": 7,
+      "h2hPoints": 4,
+      "topHalfPoints": 3,
       "finalRank": null,
-      "record": "2-2",
-      "pointsFor": 418.7,
-      "pointsAgainst": 421.8,
-      "averageScore": 104.7,
-      "avgLast3": 104.8,
+      "record": "4-3",
+      "pointsFor": 724.4,
+      "pointsAgainst": 697.6,
+      "averageScore": 103.5,
+      "avgLast3": 101.9,
       "luckIndex": 1,
-      "streak": "W1"
+      "streak": "L1"
+    },
+    {
+      "rank": 8,
+      "teamId": 2,
+      "name": "Taylor Sailors",
+      "owner": "Casey Pir",
+      "logo": "https://g.espncdn.com/lm-static/logo-packs/ffl/1stStringAllStars-SportsManias-RB/taylor-01.svg",
+      "abbrev": "AHOY",
+      "points": 6,
+      "h2hPoints": 3,
+      "topHalfPoints": 3,
+      "finalRank": null,
+      "record": "3-4",
+      "pointsFor": 718.4,
+      "pointsAgainst": 695.0,
+      "averageScore": 102.6,
+      "avgLast3": 98.7,
+      "luckIndex": 0,
+      "streak": "L3"
     },
     {
       "rank": 9,
+      "teamId": 8,
+      "name": "C0KER COLA",
+      "owner": "Eric Mon",
+      "logo": "https://g.espncdn.com/lm-static/logo-packs/ffl/Xmas-AndrewJanik/XMas_16.svg",
+      "abbrev": "ERIC",
+      "points": 6,
+      "h2hPoints": 4,
+      "topHalfPoints": 2,
+      "finalRank": null,
+      "record": "4-3",
+      "pointsFor": 657.5,
+      "pointsAgainst": 608.9,
+      "averageScore": 93.9,
+      "avgLast3": 102.4,
+      "luckIndex": 2,
+      "streak": "W3"
+    },
+    {
+      "rank": 10,
+      "teamId": 4,
+      "name": "Ultimate Fulfillment",
+      "owner": "Nicholas Pol",
+      "logo": "https://g.espncdn.com/lm-static/ffl/images/default_logos/20.svg",
+      "abbrev": "FFMT",
+      "points": 5,
+      "h2hPoints": 2,
+      "topHalfPoints": 3,
+      "finalRank": null,
+      "record": "2-5",
+      "pointsFor": 707.7,
+      "pointsAgainst": 767.1,
+      "averageScore": 101.1,
+      "avgLast3": 107.1,
+      "luckIndex": -1,
+      "streak": "L1"
+    },
+    {
+      "rank": 11,
+      "teamId": 5,
+      "name": "Saquon Deez Nuts",
+      "owner": "Nick Kub",
+      "logo": "https://g.espncdn.com/lm-static/logo-packs/core/BobsBurgers/Teddy_OnModel.svg",
+      "abbrev": "KUBI",
+      "points": 5,
+      "h2hPoints": 3,
+      "topHalfPoints": 2,
+      "finalRank": null,
+      "record": "3-4",
+      "pointsFor": 692.0,
+      "pointsAgainst": 785.3,
+      "averageScore": 98.9,
+      "avgLast3": 85.5,
+      "luckIndex": 1,
+      "streak": "L1"
+    },
+    {
+      "rank": 12,
       "teamId": 10,
       "name": "Team Ethan",
       "owner": "Ethan Hil",
@@ -970,70 +1429,13 @@
       "h2hPoints": 2,
       "topHalfPoints": 1,
       "finalRank": null,
-      "record": "2-2",
-      "pointsFor": 374.0,
-      "pointsAgainst": 431.8,
-      "averageScore": 93.5,
-      "avgLast3": 93.0,
+      "record": "2-5",
+      "pointsFor": 613.5,
+      "pointsAgainst": 714.4,
+      "averageScore": 87.6,
+      "avgLast3": 79.8,
       "luckIndex": 1,
-      "streak": "L1"
-    },
-    {
-      "rank": 10,
-      "teamId": 12,
-      "name": "Praise JA",
-      "owner": "Dav\u00edd Hui",
-      "logo": "https://g.espncdn.com/lm-static/ffl/images/default_logos/14.svg",
-      "abbrev": "RSTA",
-      "points": 2,
-      "h2hPoints": 1,
-      "topHalfPoints": 1,
-      "finalRank": null,
-      "record": "1-3",
-      "pointsFor": 386.8,
-      "pointsAgainst": 464.5,
-      "averageScore": 96.7,
-      "avgLast3": 93.0,
-      "luckIndex": 0,
-      "streak": "L3"
-    },
-    {
-      "rank": 11,
-      "teamId": 4,
-      "name": "Ultimate Fulfillment",
-      "owner": "Nicholas Pol",
-      "logo": "https://g.espncdn.com/lm-static/ffl/images/default_logos/20.svg",
-      "abbrev": "FFMT",
-      "points": 2,
-      "h2hPoints": 1,
-      "topHalfPoints": 1,
-      "finalRank": null,
-      "record": "1-3",
-      "pointsFor": 386.3,
-      "pointsAgainst": 434.1,
-      "averageScore": 96.6,
-      "avgLast3": 96.8,
-      "luckIndex": 0,
-      "streak": "W1"
-    },
-    {
-      "rank": 12,
-      "teamId": 8,
-      "name": "C0KER COLA",
-      "owner": "Eric Mon",
-      "logo": "https://g.espncdn.com/lm-static/logo-packs/ffl/Xmas-AndrewJanik/XMas_16.svg",
-      "abbrev": "ERIC",
-      "points": 2,
-      "h2hPoints": 1,
-      "topHalfPoints": 1,
-      "finalRank": null,
-      "record": "1-3",
-      "pointsFor": 350.2,
-      "pointsAgainst": 371.0,
-      "averageScore": 87.5,
-      "avgLast3": 82.8,
-      "luckIndex": 0,
-      "streak": "L1"
+      "streak": "L4"
     }
   ],
   "playoffs": null,
