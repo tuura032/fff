@@ -1,6 +1,6 @@
 # ENH-038 — Week-over-week rank movement arrows on the standings
 
-Status: open · Category: content & features
+Status: done 2026-11-03 · Category: content & features
 
 Owner request (2026-11-03): next to each team's rank on the Home standings
 table, show how that rank moved since the previous week, green up / red down,
@@ -101,3 +101,14 @@ helpers:
   regenerates both with the real build). Revert them before finishing:
   `git checkout -- docs data`.
 - Don't edit any other template, fetch.py, build.py, or the sidecar.
+
+## Shipped
+
+Built by a local Qwen worker from this spec, reviewed and tweaked by Claude.
+`compute.rank_teams()` plus a `prevRank` field on every standings row; Home's
+rank cell shows a green ▲N, red ▼N, or muted – with a "Up 1 since week 7
+(was 4th)" tooltip and screen-reader text. Review tweaks: ranks 4+ get the same
+w-6 box as the top-3 badges so the markers line up, and the label is sr-only
+text rather than aria-label on a bare span. Past seasons were recomputed once
+so they show the week 13→14 move. Verified: 220 tests OK; real 2026 data
+(week 8) gives the expected moves; rendered Home checked in a browser.

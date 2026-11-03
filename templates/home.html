@@ -126,17 +126,31 @@
         {% set top_rate = (info.topHalfPoints / throughWeek) if throughWeek else none %}
         <tr class="cursor-pointer transition-colors odd:bg-white even:bg-slate-50 hover:bg-blue-50/70 dark:odd:bg-slate-900 dark:even:bg-slate-900/50 dark:hover:bg-slate-800/70"
             data-owner="{{ info.owner }}">
-          <td class="px-3 py-2">
-            {% if loop.index <= 3 %}
-              {% set rank_colors = {
-                1: "bg-amber-300 text-amber-900 dark:bg-amber-400 dark:text-amber-950",
-                2: "bg-slate-300 text-slate-800 dark:bg-slate-400 dark:text-slate-900",
-                3: "bg-orange-300 text-orange-900 dark:bg-orange-400 dark:text-orange-950"
-              } %}
-              <span class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold {{ rank_colors[loop.index] }}">{{ loop.index }}</span>
-            {% else %}
-              <span class="pl-1.5 text-slate-600 dark:text-slate-300">{{ loop.index }}</span>
-            {% endif %}
+          <td class="px-3 py-2" data-sort="{{ loop.index }}">
+            <span class="inline-flex items-center">
+              {% if loop.index <= 3 %}
+                {% set rank_colors = {
+                  1: "bg-amber-300 text-amber-900 dark:bg-amber-400 dark:text-amber-950",
+                  2: "bg-slate-300 text-slate-800 dark:bg-slate-400 dark:text-slate-900",
+                  3: "bg-orange-300 text-orange-900 dark:bg-orange-400 dark:text-orange-950"
+                } %}
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold {{ rank_colors[loop.index] }}">{{ loop.index }}</span>
+              {% else %}
+                <span class="inline-block w-6 text-center text-slate-600 dark:text-slate-300">{{ loop.index }}</span>
+              {% endif %}
+              {% set prev = info.get("prevRank") %}
+              {% if prev is not none %}
+                {% set change = prev - loop.index %}
+                {% set prev_week = throughWeek - 1 %}
+                {% if change > 0 %}
+                  <span class="ml-1.5 text-[.65rem] font-semibold tabular-nums text-emerald-600 dark:text-emerald-400" title="Up {{ change }} since week {{ prev_week }} (was {{ prev | ordinal }})"><span aria-hidden="true">&#9650;{{ change }}</span><span class="sr-only">Up {{ change }} since week {{ prev_week }} (was {{ prev | ordinal }})</span></span>
+                {% elif change < 0 %}
+                  <span class="ml-1.5 text-[.65rem] font-semibold tabular-nums text-red-600 dark:text-red-400" title="Down {{ -change }} since week {{ prev_week }} (was {{ prev | ordinal }})"><span aria-hidden="true">&#9660;{{ -change }}</span><span class="sr-only">Down {{ -change }} since week {{ prev_week }} (was {{ prev | ordinal }})</span></span>
+                {% else %}
+                  <span class="ml-1.5 text-[.65rem] font-semibold tabular-nums text-slate-300 dark:text-slate-600" title="No change since week {{ prev_week }}"><span aria-hidden="true">&ndash;</span><span class="sr-only">No change since week {{ prev_week }}</span></span>
+                {% endif %}
+              {% endif %}
+            </span>
           </td>
           {# Person first, team name as a muted second line: team names
              change every season, the people don't, so the owner is the

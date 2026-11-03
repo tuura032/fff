@@ -218,13 +218,15 @@ have, note it in `WORKLOG.md` and leave the page unrendered.
       "teams": [ { "teamId": 1, "score": 143.8, "h2h": 1, "topHalf": 1, "weekPoints": 2 } ] }
   ],
   "standings": [
-    { "rank": 1, "teamId": 1, "name": "…", "owner": "…",
+    { "rank": 1, "prevRank": 2, "teamId": 1, "name": "…", "owner": "…",
       "points": 21, "h2hPoints": 11, "topHalfPoints": 10,
       "record": "11-3", "pointsFor": 1698.4, "pointsAgainst": 1502.1,
       "averageScore": 121.3, "avgLast3": 118.0 }
   ]
 }
 ```
+
+**Added 2026-11-03:** `prevRank` — rank after week throughWeek−1, same ranking rule; `null` before week 2 (ENH-038).
 
 Keep the per-week detail — it is what makes a weekly-recap view possible later
 without re-fetching, and it is how you audit a standings change by diffing two

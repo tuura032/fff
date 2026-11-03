@@ -425,6 +425,27 @@ def build_league_rules(settings):
     }
 
 
+def rank_teams(weeks, team_ids):
+    """Dual-point rank for each team over the given weeks (ENH-038).
+
+    weeks: completed weeks in the ``weeks_out`` shape — each with a
+    ``"teams"`` list carrying ``teamId``, ``score``, ``h2h``, ``topHalf``.
+    team_ids: ids in ``team_info`` order, so the stable sort breaks ties
+    exactly like the real ranking does.
+    Returns ``{teamId: rank}`` — 1..N, sorted by points descending then
+    pointsFor (summed raw score, rounded to 1 decimal) descending.
+    """
+    totals = {tid: {"points": 0, "pointsFor": 0.0} for tid in team_ids}
+    for w in weeks:
+        for t in w["teams"]:
+            totals[t["teamId"]]["points"] += t["h2h"] + t["topHalf"]
+            totals[t["teamId"]]["pointsFor"] += t["score"]
+    order = sorted(team_ids,
+                   key=lambda tid: (-totals[tid]["points"],
+                                    -round(totals[tid]["pointsFor"], 1)))
+    return {tid: i for i, tid in enumerate(order, 1)}
+
+
 def build_standings(raw, updated):
     """Raw fetch dict (mMatchupScore + mTeam + mSettings) -> §5 standings dict.
 
@@ -493,6 +514,14 @@ def build_standings(raw, updated):
         weeks_out.append(compute_week(week, played))
         through_week = week
 
+    # ENH-038: each team's rank after week through_week - 1 — the completed
+    # weeks minus the last, ranked with the same rule as `rank`. null before
+    # week 2 (no previous week to compare to).
+    if len(weeks_out) >= 2:
+        prev_ranks = rank_teams(weeks_out[:-1], list(team_info))
+    else:
+        prev_ranks = {tid: None for tid in team_info}
+
     stats = {tid: {"h2hPoints": 0, "topHalfPoints": 0, "wins": 0, "losses": 0,
                    "ties": 0, "pointsFor": 0.0, "pointsAgainst": 0.0,
                    "scores": [], "h2h_seq": []}
@@ -532,6 +561,7 @@ def build_standings(raw, updated):
             "logo": info["logo"],
             "abbrev": info["abbrev"],
             "points": s["h2hPoints"] + s["topHalfPoints"],
+            "prevRank": prev_ranks[tid],
             "h2hPoints": s["h2hPoints"],
             "topHalfPoints": s["topHalfPoints"],
             # Where they actually finished once the playoffs were done.

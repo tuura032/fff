@@ -2263,3 +2263,53 @@ class TestLiveData(unittest.TestCase):
         self.assertNotIn("updated", text)
 
 
+class TestPrevRank(unittest.TestCase):
+    """prevRank (ENH-038): each team's rank after week throughWeek - 1,
+    computed with the same ranking rule as rank; null before week 2."""
+
+    IDS = list(range(1, 13))
+
+    def setUp(self):
+        self.out = compute.build_standings(make_raw(full_season_weeks()),
+                                           UPDATED)
+        self.by_id = {r["teamId"]: r for r in self.out["standings"]}
+
+    def test_full_season_has_int_prev_ranks_1_to_12(self):
+        for r in self.out["standings"]:
+            self.assertIsInstance(r["prevRank"], int)
+        self.assertEqual({r["prevRank"] for r in self.out["standings"]},
+                         set(range(1, 13)))
+
+    def test_rank_teams_matches_the_real_rank(self):
+        self.assertEqual(compute.rank_teams(self.out["weeks"], self.IDS),
+                         {r["teamId"]: r["rank"] for r in self.out["standings"]})
+
+    def test_prev_rank_is_the_rank_without_the_last_week(self):
+        prev = compute.rank_teams(self.out["weeks"][:-1], self.IDS)
+        for r in self.out["standings"]:
+            self.assertEqual(r["prevRank"], prev[r["teamId"]])
+
+    def test_single_week_season_prev_rank_is_none(self):
+        weeks = {1: week_games([150, 100, 140, 110, 130, 120,
+                                125, 105, 115, 135, 108, 118], week=1)}
+        out = compute.build_standings(make_raw(weeks), UPDATED)
+        self.assertEqual(out["throughWeek"], 1)
+        for r in out["standings"]:
+            self.assertIsNone(r["prevRank"])
+
+    def test_team_that_moves_between_weeks(self):
+        # Week 1: team 2 scores 100, dead last in the standings (rank 12).
+        # Week 2: team 2 scores 300, winning its H2H and the top-half
+        # point for 2 points (team 1 drops to 2 points with 241).
+        weeks = {
+            1: week_games([150, 100, 140, 110, 130, 120,
+                           125, 105, 115, 135, 108, 118], week=1),
+            2: week_games([91, 300, 140, 110, 130, 120,
+                           125, 105, 115, 135, 108, 118], week=2),
+        }
+        out = compute.build_standings(make_raw(weeks, week_count=2), UPDATED)
+        by_id = {r["teamId"]: r for r in out["standings"]}
+        self.assertEqual(by_id[2]["rank"], 5)
+        self.assertEqual(by_id[2]["prevRank"], 12)
+
+
