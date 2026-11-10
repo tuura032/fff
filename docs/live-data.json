@@ -1,72 +1,72 @@
 {
   "season": 2026,
-  "throughWeek": 8,
+  "throughWeek": 9,
   "regularSeasonWeeks": 14,
   "teams": [
     {
       "teamId": 9,
       "name": "Wyld Stallyns",
-      "points": 13,
+      "points": 14,
       "rank": 1
-    },
-    {
-      "teamId": 6,
-      "name": "Team Jamie",
-      "points": 10,
-      "rank": 2
     },
     {
       "teamId": 7,
       "name": "Daniel's Driven Team",
-      "points": 10,
-      "rank": 3
-    },
-    {
-      "teamId": 11,
-      "name": "De'Von to Break Down and Cry",
-      "points": 9,
-      "rank": 4
+      "points": 12,
+      "rank": 2
     },
     {
       "teamId": 1,
       "name": "Walker, Kenneth Ranger",
+      "points": 11,
+      "rank": 3
+    },
+    {
+      "teamId": 6,
+      "name": "Team Jamie",
+      "points": 11,
+      "rank": 4
+    },
+    {
+      "teamId": 11,
+      "name": "De'Von to Break Down and Cry",
       "points": 9,
       "rank": 5
     },
     {
       "teamId": 3,
       "name": "Chat, Draft My Team",
-      "points": 8,
+      "points": 9,
       "rank": 6
+    },
+    {
+      "teamId": 2,
+      "name": "Taylor Sailors",
+      "points": 9,
+      "rank": 7
     },
     {
       "teamId": 12,
       "name": "Praise JA",
-      "points": 7,
-      "rank": 7
+      "points": 8,
+      "rank": 8
+    },
+    {
+      "teamId": 4,
+      "name": "Ultimate Fulfillment",
+      "points": 8,
+      "rank": 9
     },
     {
       "teamId": 5,
       "name": "Saquon Deez Nuts",
       "points": 7,
-      "rank": 8
-    },
-    {
-      "teamId": 2,
-      "name": "Taylor Sailors",
-      "points": 7,
-      "rank": 9
+      "rank": 10
     },
     {
       "teamId": 8,
       "name": "C0KER COLA",
       "points": 7,
-      "rank": 10
-    },
-    {
-      "teamId": 4,
-      "name": "Ultimate Fulfillment",
-      "points": 6,
       "rank": 11
     },
     {
